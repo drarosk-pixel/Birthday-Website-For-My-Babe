@@ -15,6 +15,7 @@ button,img {user-select:none;-webkit-user-drag:none}
 .sr-only {position:absolute;top:0;left:0;width:1px;height:1px;padding:0;border:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .sound {position:fixed;z-index:10;top:max(15px,env(safe-area-inset-top));right:max(17px,env(safe-area-inset-right));width:41px;height:41px;border:1px solid #fff9;border-radius:50%;background:#fffffff0;color:#704650;box-shadow:0 1px 12px #6c2f3510;display:grid;place-items:center}
 .notes {font:700 21px Georgia;position:relative;line-height:1}.sound[aria-pressed=false] .notes:after {content:"";position:absolute;top:49%;left:-14%;width:130%;height:1.7px;background:currentColor;transform:rotate(48deg);box-shadow:0 -1.5px white}
+#music-hint {position:absolute;right:calc(100% + 6px);top:50%;transform:translateY(-50%);white-space:nowrap;padding:.35rem .68rem;border-radius:1rem;background:#fffaf4;color:#714351;font-size:.78rem;font-weight:700;box-shadow:0 2px 10px #6c2f3514}
 .sound .music-bars {display:none;align-items:end;justify-content:center;gap:2px;height:17px;width:21px}
 .sound.is-playing .notes {display:none}
 .sound.is-playing .music-bars {display:flex}

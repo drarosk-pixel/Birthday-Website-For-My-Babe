@@ -139,17 +139,20 @@ function tone(frequency, duration=.52, volume=.08, offset=0) {
 // Keep the visitor's choice separate from a browser waiting for a first gesture.
 let needsMusicGesture = true;
 let musicRequest = 0;
+const musicHint = $("#music-hint");
 function updateSoundButton() {
   const enabled = sounds.active && !needsMusicGesture;
   const label = enabled ? "Turn music off" : "Turn music on";
+  musicHint.hidden = !sounds.active || !needsMusicGesture || document.hidden || !voice.paused;
   soundButton.setAttribute("aria-pressed", String(enabled));
-  soundButton.setAttribute("aria-label", label);
+  soundButton.setAttribute("aria-label", musicHint.hidden ? label : musicHint.textContent);
   soundButton.title = label;
 }
 function syncMusic() {
   const request = ++musicRequest;
   if (!sounds.active || document.hidden || !voice.paused) {
     music.pause();
+    updateSoundButton();
     soundButton.classList.remove("is-playing");
     return;
   }
