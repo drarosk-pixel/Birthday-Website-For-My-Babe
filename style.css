@@ -2,7 +2,8 @@
 * {box-sizing:border-box}
 body {margin:0;background:#fff4eb}
 button {font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
-button:focus-visible,[tabindex]:focus-visible {outline:3px solid #b94176;outline-offset:5px}
+[tabindex="-1"]:focus {outline:none}
+button:focus-visible,[role="button"]:focus-visible {outline:none;filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 3px #60432e)}
 button:disabled {cursor:default}
 h1,h2,h3,p {margin:0}
 button,img {user-select:none;-webkit-user-drag:none}
@@ -21,7 +22,6 @@ button,img {user-select:none;-webkit-user-drag:none}
 .heart-target {position:absolute;top:35%;left:50%;transform:translate(-50%,-50%);width:clamp(108px,12vw,178px);padding:0;border:0;background:none;touch-action:manipulation}
 .heart-target img {position:relative;display:block;width:100%;height:auto;filter:drop-shadow(0 9px 9px #b02c5b33);animation:heartbeat 3.4s ease-in-out infinite}
 .heart-aura {pointer-events:none;position:absolute;inset:-100%;border-radius:50%;background:radial-gradient(ellipse, #ed5487a6, #f3799e55 33%, #f2a4aa24 53%,transparent 72%);filter:blur(8px)}
-.heart-target:focus-visible {border-radius:45%}
 .opening-foot {bottom:max(4%,16px);display:grid;justify-items:center;gap:.26rem}
 .pull,.dateline {color:#844c5d}
 .pull {background:transparent;border:0;font-size:clamp(.83rem,1.35vw,1.08rem);font-weight:900;text-transform:uppercase;letter-spacing:.19em;font-style:italic;padding:.5rem .9rem}
@@ -73,7 +73,7 @@ button,img {user-select:none;-webkit-user-drag:none}
 .puzzle-frame {position:relative;padding:5px;background:#fff9ed;border-radius:9px;box-shadow:0 5px 14px #7e4d3436;overflow:hidden}
 #tiles {display:grid;grid-template-columns:repeat(3,1fr);aspect-ratio:1;gap:1px;background:#fff5de}
 .tile {padding:0;min-width:0;aspect-ratio:1;border:0;background-repeat:no-repeat;background-size:300% 300%;touch-action:none}.tile.selected {outline:3px solid #fff1ba;outline-offset:-3px;filter:brightness(1.2)}
-.tile:focus-visible {position:relative;outline-offset:-4px}.peek-image {padding:5px;pointer-events:none}.puzzle-info {gap:.4rem;flex-wrap:wrap}.puzzle-info>* {padding:.33rem .63rem;color:#69394a}
+.tile:focus-visible,.scratch-picture canvas:focus-visible {filter:brightness(.76)}.peek-image {padding:5px;pointer-events:none}.puzzle-info {gap:.4rem;flex-wrap:wrap}.puzzle-info>* {padding:.33rem .63rem;color:#69394a}
 #solved p {font:700 1.24rem var(--hand);margin:.9rem 0 0}
 #envelope-wrap {margin:2.4rem 0 1.2rem}.envelope {display:block;position:relative;width:min(270px,69vw);aspect-ratio:1.58;margin:auto;border:0;padding:0;background:#99602f;box-shadow:0 10px 24px #81452140;perspective:700px}
 .envelope-front,.flap,.paper-peek {position:absolute;inset:0}.paper-peek {background:repeating-linear-gradient(#fff8e9 0 14px,#cfb38e 15px,#fff8e9 16px);inset:9% 7% 5%;padding-top:.5rem;color:#ac3659;transition:transform .55s .25s}.envelope-front {background:linear-gradient(34deg,#a96e39 0 49.6%,transparent 50%) left/51% 100% no-repeat,linear-gradient(-34deg,#ad723f 0 49.6%,transparent 50%) right/51% 100% no-repeat,linear-gradient(0deg,#ba8550,#9f6737);clip-path:polygon(0 0,50% 51%,100% 0,100% 100%,0 100%)}
@@ -98,3 +98,4 @@ button,img {user-select:none;-webkit-user-drag:none}
 @media(max-width:460px) and (min-height:620px) {.polaroids {max-width:340px;grid-template-columns:repeat(4,1fr);row-gap:2px}.polaroid {grid-column:span 1}.album-inner {width:100%}.album .polaroids {grid-template-columns:repeat(2,1fr);width:min(75vw,32vh)}.album .polaroid img {height:min(14.5vh,25vw)}.album h2 {margin-top:.35rem}}
 @media(max-height:540px) and (orientation:landscape) {.centered {padding:1.1rem .8rem}.opening {min-height:305px}.invitation {top:11%}.bow {width:84px}.heart-target {width:88px}.room-wrap h2 {font-size:1.8rem}.door-frame {min-height:175px;height:45vh}.gold-frame,.puzzle-frame {width:36vh}.room-wrap>p:not(.eyebrow) {margin:.3rem auto}.opening-foot {bottom:3%}.room-wrap .pink-button {margin:.5rem auto}.album-inner {max-width:650px}.album .polaroid img {height:21vh}}
 @media(prefers-reduced-motion:reduce) {*,*:before,*:after {animation-duration:.01ms!important;animation-delay:0ms!important;transition-duration:.01ms!important;animation-iteration-count:1!important}.particle,.rose-rain {display:none}}
+@media(forced-colors:active) {button:focus-visible,[role="button"]:focus-visible {outline:2px solid Highlight;outline-offset:-2px}}
