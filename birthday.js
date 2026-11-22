@@ -5,7 +5,9 @@ const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
 const scenes = [...document.querySelectorAll(".scene")];
 const captions = ["Love, on paper", "Coffee for two", "Between the pages", "Afternoon light", "Cherry sweet", "A quiet sunset", "Make a wish", "Close to my heart"];
 const photoPath = (index) => "assets/photos/" + String(index + 1).padStart(2, "0") + ".jpg";
-const sounds = {context:null, active:false, timer:0, beat:0};
+const sounds = {context:null, active:false};
+const music = $("#music"), voice = $("#voice"), soundButton = $("#sound");
+music.volume = .58;
 let current = "opening";
 let sceneTimers = [];
 let stopTree = null;
@@ -134,28 +136,36 @@ function tone(frequency, duration=.52, volume=.08, offset=0) {
   osc.connect(gain); gain.connect(ctx.destination);
   osc.start(start); osc.stop(start+duration+.04);
 }
-function musicBeat() {
-  if (document.hidden || !$("#voice").paused) return;
-  const tune = [523.25,659.25,783.99,659.25,587.33,698.46,880,698.46,523.25,659.25,830.61,659.25,493.88,587.33,783.99,587.33];
-  const i = sounds.beat++ % tune.length;
-  tone(tune[i],1.1,.038);
-  if (i%4 === 0) tone([130.81,146.83,164.81,123.47][i/4],1.8,.04);
+function setSoundEnabled(enabled) {
+  sounds.active = enabled;
+  const label = enabled ? "Turn music off" : "Turn music on";
+  soundButton.setAttribute("aria-pressed", String(enabled));
+  soundButton.setAttribute("aria-label", label);
+  soundButton.title = label;
 }
-$("#sound").addEventListener("click", async () => {
-  if (sounds.active) {
-    sounds.active=false; clearInterval(sounds.timer);
-  } else {
-    const AudioEngine=window.AudioContext || window.webkitAudioContext;
-    if (!AudioEngine) {announce("Music is unavailable in this browser.");return;}
-    sounds.context ||= new AudioEngine();
-    try { await sounds.context.resume(); } catch {announce("Music could not start.");return;}
-    sounds.active=true; musicBeat(); sounds.timer=setInterval(musicBeat,530);
+function syncMusic() {
+  if (!sounds.active || document.hidden || !voice.paused) {
+    music.pause();
+    return;
   }
-  const label = sounds.active ? "Turn music off" : "Turn music on";
-  $("#sound").setAttribute("aria-pressed",String(sounds.active));
-  $("#sound").setAttribute("aria-label",label);
-  $("#sound").title=label;
+  music.play().catch(error => {
+    if (error.name === "AbortError" || !sounds.active) return;
+    setSoundEnabled(false);
+    announce("Music could not start. Tap the music button to try again.");
+  });
+}
+soundButton.addEventListener("click", () => {
+  setSoundEnabled(!sounds.active);
+  syncMusic();
+  // The song plays directly from the audio element. Web Audio supplies the touch sounds.
+  const AudioEngine = window.AudioContext || window.webkitAudioContext;
+  if (sounds.active && AudioEngine) {
+    sounds.context ||= new AudioEngine();
+    sounds.context.resume().catch(() => {});
+  }
 });
+for (const event of ["play", "pause", "ended"]) voice.addEventListener(event, syncMusic);
+document.addEventListener("visibilitychange", syncMusic);
 function particles(x,y,confetti=false) {
   if (reduced.matches) return;
   const colors=["#bf345e","#ec86a4","#eeb85b","#f49e94","#79435b"];
@@ -473,13 +483,42 @@ captions.forEach((title,i)=>{
   frame.style.setProperty("--angle",angles[i]+"deg");frame.style.setProperty("--delay",(.18+i*.105)+"s");
   const img=new Image();img.src=photoPath(i);img.alt=title;frame.append(img);$("#polaroids").append(frame);
 });
-let knocks=0;
-$("#door").addEventListener("click",()=>{
-  if(knocks>=3)return;knocks++;tone(157,.17,.12);
-  $("#knocks").textContent="● ".repeat(knocks)+"○ ".repeat(3-knocks);
-  const ring=$(".knocker");ring.classList.remove("hit");void ring.offsetWidth;ring.classList.add("hit");
-  if(knocks===3){$("#door").classList.add("open");$(".door-frame").classList.add("welcoming");announce("Come in, Gunjan.");later(()=>show("scratch"),reduced.matches?650:1730);}
-  else announce(knocks+" of 3 knocks.");
+const door = $("#door"), knocker = $(".knocker");
+let knocks = 0;
+let doorRecoil;
+door.addEventListener("click", event => {
+  if (knocks === 3) return;
+  knocks++;
+  const bounds = door.getBoundingClientRect();
+  const ring = knocker.getBoundingClientRect();
+  const tapX = event.detail ? event.clientX : ring.left + ring.width / 2;
+  const tapY = event.detail ? event.clientY : ring.top + ring.height / 2;
+  const impact = document.createElement("span");
+  impact.className = "knock-impact";
+  impact.setAttribute("aria-hidden", "true");
+  impact.style.left = ((tapX - bounds.left) / bounds.width * door.offsetWidth - door.clientLeft) + "px";
+  impact.style.top = ((tapY - bounds.top) / bounds.height * door.offsetHeight - door.clientTop) + "px";
+  door.append(impact);
+  window.setTimeout(() => impact.remove(), reduced.matches ? 260 : 620);
+  if (!reduced.matches) {
+    doorRecoil?.cancel();
+    doorRecoil = door.animate([
+      {translate:"0 0"}, {translate:"0 3px", offset:.13}, {translate:"0 -2px", offset:.32},
+      {translate:"0 1px", offset:.56}, {translate:"0 0"}
+    ], {duration:330, easing:"ease-out"});
+    knocker.classList.remove("hit");
+    void knocker.offsetWidth;
+    knocker.classList.add("hit");
+  }
+  tone(142, .11, .18); tone(405, .055, .09);
+  $("#knocks").textContent = "● ".repeat(knocks) + "○ ".repeat(3-knocks);
+  if (knocks < 3) { announce(knocks + " of 3 knocks."); return; }
+  announce("Come in, Gunjan.");
+  later(() => {
+    door.classList.add("open");
+    $(".door-frame").classList.add("welcoming");
+    later(() => show("scratch"), reduced.matches ? 650 : 1730);
+  }, reduced.matches ? 0 : 185);
 });
 
 const foil=$("#foil"), ink=foil.getContext("2d",{willReadFrequently:true});
@@ -626,35 +665,60 @@ peek.addEventListener("pointerdown",e=>{peek.setPointerCapture(e.pointerId);peek
 ["pointerup","pointercancel","lostpointercapture","blur"].forEach(event=>peek.addEventListener(event,()=>{peekImage.hidden=true;}));
 peek.addEventListener("keydown",e=>{if(e.key===" "||e.key==="Enter"){e.preventDefault();peekImage.hidden=false;}});
 peek.addEventListener("keyup",()=>{peekImage.hidden=true;});
-$("#envelope").addEventListener("click",()=>{
-  const envelope=$("#envelope");if(envelope.classList.contains("open"))return;
-  envelope.classList.add("open");tone(659,.65,.07);
-  later(()=>{
-    const heading = $("#letter-heading");
-    const oldHeading = heading.getBoundingClientRect();
-    const start = $(".paper-peek").getBoundingClientRect();
-    $("#envelope-wrap").hidden = true;
-    $("#letter-content").hidden = false;
-    if (!reduced.matches) {
-      const paper = $(".letter-paper");
-      const scale = start.width / paper.offsetWidth;
-      const end = paper.getBoundingClientRect();
-      const dx = start.left + start.width/2 - end.left - end.width/2;
-      const dy = start.top - end.top;
-      const fold = Math.max(0, paper.offsetHeight - start.height / scale);
-      paper.animate([
-        {transform:"translate(" + dx + "px," + dy + "px) scale(" + scale + ")", clipPath:"inset(0 0 " + fold + "px)"},
-        {transform:"rotate(-.55deg)", clipPath:"inset(0 0 0px)"}
-      ], {duration:880, easing:settle});
-      const headingShift = oldHeading.top - heading.getBoundingClientRect().top;
-      for (const line of [heading, $("#letter .eyebrow")]) {
-        line.animate([{transform:"translateY(" + headingShift + "px)"}, {transform:"none"}], {duration:660,easing:settle});
-      }
-    }
-    announce("Your letter is open.");heading.focus({preventScroll:true});
-  },reduced.matches?0:930);
+const envelopeButton = $("#envelope");
+envelopeButton.addEventListener("click", () => {
+  if (envelopeButton.disabled) return;
+  envelopeButton.disabled = true;
+  tone(659, .65, .07);
+  const wrap = $("#envelope-wrap"), content = $("#letter-content"), heading = $("#letter-heading");
+  const room = wrap.parentElement;
+  const paper = content.querySelector(".letter-paper");
+  if (reduced.matches) {
+    wrap.hidden = true;
+    content.hidden = false;
+    announce("Your letter is open.");
+    heading.focus({preventScroll:true});
+    return;
+  }
+
+  const pocket = wrap.querySelector(".envelope");
+  const insert = wrap.querySelector(".paper-peek");
+  const closed = insert.getBoundingClientRect();
+  const readingWidth = Math.min(room.clientWidth, 365);
+  insert.style.setProperty("--reading-width", readingWidth + "px");
+  insert.style.setProperty("--insert-scale", insert.clientWidth / readingWidth);
+  pocket.style.setProperty("--sleeve-drop", Math.max(18, 12 - closed.top + closed.height * 1.16) + "px");
+  insert.append(paper);
+  room.classList.add("unsealing");
+  pocket.classList.add("open");
+
+  later(() => {
+    const start = insert.getBoundingClientRect();
+    const shell = wrap.getBoundingClientRect();
+    const scene = $("#letter").getBoundingClientRect();
+    // Leave the empty sleeve where it was as the same sheet unfolds in front of it.
+    wrap.style.left = (shell.left - scene.left) + "px";
+    wrap.style.top = (shell.top - scene.top) + "px";
+    wrap.style.width = shell.width + "px";
+    wrap.classList.add("released");
+    content.prepend(paper);
+    content.hidden = false;
+    paper.style.transform = "none";
+    const end = paper.getBoundingClientRect();
+    paper.style.removeProperty("transform");
+    const scale = start.width / end.width;
+    const fold = Math.max(0, end.height - start.height / scale);
+    paper.animate([
+      {transform:"translate(" + (start.left-end.left) + "px," + (start.top-end.top) + "px) scale(" + scale + ")", clipPath:"inset(0 0 " + fold + "px)"},
+      {transform:"rotate(-.55deg)", clipPath:"inset(0 0 0px)"}
+    ], {duration:820, easing:settle});
+    room.classList.remove("unsealing");
+    later(() => { wrap.hidden = true; }, 490);
+    announce("Your letter is open.");
+    heading.focus({preventScroll:true});
+  }, 1300);
 });
-const voice=$("#voice"),play=$("#voice-play");
+const play=$("#voice-play");
 function voiceState(){
   const playing=!voice.paused&&!voice.ended;
   play.textContent=playing?"Ⅱ":"▶";play.setAttribute("aria-label",(playing?"Pause":"Play")+" birthday voice note");

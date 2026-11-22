@@ -8,11 +8,12 @@
   <title>For Gunjan, with love · 12 January 2027</title>
   <link rel="icon" href="assets/heart.webp" type="image/webp">
   <link rel="stylesheet" href="assets/fonts/fonts.css">
-  <link rel="stylesheet" href="style.css?v=144d2e809948">
-  <script src="birthday.js?v=9a8dba6ff4ec" defer></script>
+  <link rel="stylesheet" href="style.css?v=aee4c5a720ed">
+  <script src="birthday.js?v=e77308c4f30d" defer></script>
 </head>
 <body>
 <button id="sound" class="sound" aria-label="Turn music on" aria-pressed="false" title="Turn music on"><span class="notes" aria-hidden="true">♫</span></button>
+<audio id="music" src="assets/lovers.mp3" loop preload="none"></audio>
 <main id="story">
   <section id="opening" class="scene opening" aria-labelledby="invitation">
     <header class="invitation"><h1 id="invitation">someone made this, just for you</h1></header>
@@ -62,7 +63,14 @@
   </section>
   <section id="letter" class="scene blush centered" aria-labelledby="letter-heading" hidden>
     <div class="room-wrap"><p class="eyebrow">Room III · The reading room</p><h2 id="letter-heading">A letter, sealed just for <em>you.</em></h2>
-    <div id="envelope-wrap"><button class="envelope" id="envelope" aria-label="Open the sealed letter"><span class="paper-peek">♥</span><span class="envelope-front"></span><span class="flap"></span><span class="seal">♥</span></button><p class="hand">Tap the seal to open it</p></div>
+    <div id="envelope-wrap">
+      <div class="envelope">
+        <div class="paper-peek" aria-hidden="true" inert></div>
+        <span class="envelope-front" aria-hidden="true"></span><span class="flap" aria-hidden="true"></span><span class="seal" aria-hidden="true">♥</span>
+        <button id="envelope" aria-label="Open the sealed letter"></button>
+      </div>
+      <p class="hand">Tap the seal to open it</p>
+    </div>
     <div id="letter-content" hidden>
       <article class="letter-paper"><p>Hey Gunjan ❤️</p><p>Happy birthday, meri jaan. If I could wrap up the way I feel about you, I think it would look a little like this place.</p><p>Tumhare saath ek ordinary sa din bhi meri favourite memory ban jaata hai. I’d pick a hundred more of those days with you.</p><p>On your birthday, I hope you feel as loved as you make me feel. Aaj ki har chhoti si khushi tumhare naam.</p><p>I love you more than this little letter can hold.</p><p class="signature">Always yours ♥</p></article>
       <div class="voice-note"><button id="voice-play" aria-label="Play birthday voice note">▶</button><div><b>Hear the birthday note</b><span class="wave" aria-hidden="true"></span></div><output id="voice-time">0:00</output><audio id="voice" src="assets/birthday-note.mp3" preload="metadata"></audio></div>
