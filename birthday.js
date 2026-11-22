@@ -722,7 +722,7 @@ function changePhoto(delta) {
 $("#prev-photo").addEventListener("click",()=>changePhoto(-1));$("#next-photo").addEventListener("click",()=>changePhoto(1));
 
 let order=[],selected=null,moves=0,puzzleClock=0,started=0,solved=false,drag=null,swallowedClick=false;
-const tiles=$("#tiles"),puzzlePhoto=photoPath(7);
+const tiles=$("#tiles"), puzzlePhoto="assets/puzzle-hug.jpg";
 const formatTime=s=>Math.floor(s/60)+":"+String(Math.floor(s)%60).padStart(2,"0");
 function startPuzzle(){
   selected=null;moves=0;solved=false;started=Date.now();drag=null;swallowedClick=false;
@@ -731,14 +731,19 @@ function startPuzzle(){
   order.forEach((_,i)=>{
     const tile=document.createElement("button");tile.className="tile";tile.dataset.slot=i;
     const face=document.createElement("span");face.className="tile-face";face.setAttribute("aria-hidden","true");
-    face.style.backgroundImage="url('"+puzzlePhoto+"')";tile.append(face);tiles.append(tile);
+    const image = new Image();
+    image.alt = "";
+    image.src = puzzlePhoto;
+    face.append(image);tile.append(face);tiles.append(tile);
   });
   paintTiles();
   puzzleClock=setInterval(()=>{$("#timer").textContent=formatTime((Date.now()-started)/1000);},500);
 }
 function paintTiles(){
   [...tiles.children].forEach((tile,slot)=>{
-    const part=order[slot];tile.firstElementChild.style.backgroundPosition=(part%3*50)+"% "+(Math.floor(part/3)*50)+"%";
+    const part=order[slot], image=tile.querySelector("img");
+    image.style.left = -(part % 3) * 100 + "%";
+    image.style.top = -Math.floor(part / 3) * 100 + "%";
     tile.classList.toggle("selected",selected===slot);tile.setAttribute("aria-pressed",String(selected===slot));
     tile.setAttribute("aria-label","Position "+(slot+1)+", picture piece "+(part+1));tile.disabled=solved;
   });

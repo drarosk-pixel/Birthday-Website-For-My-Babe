@@ -110,10 +110,12 @@ button,img {user-select:none;-webkit-user-drag:none}
 .photo-nav,.puzzle-info {display:flex;align-items:center;justify-content:center;gap:.85rem;margin:.65rem 0;font-weight:800;font-size:.88rem}.photo-nav button,.puzzle-info>* {border:0;border-radius:999px;background:#fff9f1c9;box-shadow:0 2px 7px #7b33471a}.photo-nav button {width:37px;height:34px;font:1.6rem/1 Georgia}.photo-nav span {min-width:4em}
 .pink-button {display:block;margin:1rem auto .9rem;border:1px solid #c44778;border-radius:10px;padding:.7rem 1.6rem;width:min(100%,15.7rem);font-size:1rem;font-weight:900;letter-spacing:.012em;color:white;background:linear-gradient(110deg,#e2588a,#bf285e);box-shadow:0 5px 12px #a2316230}.pink-button:hover:enabled {filter:brightness(1.055)}.pink-button:disabled {opacity:.56}
 .room-progress {display:flex;align-items:center;justify-content:center;gap:.33rem}.room-progress i {display:inline-block;width:.46rem;height:.46rem;border:1px solid #c17e94;border-radius:50%}.room-progress i.filled {background:#b94570}
-.puzzle-frame {position:relative;isolation:isolate;padding:5px;background:#fff9ed;border-radius:9px;box-shadow:0 5px 14px #7e4d3436;overflow:hidden}
+.puzzle-frame {--photo-focus:50% 72%;position:relative;isolation:isolate;padding:5px;background:#fff9ed;border-radius:9px;box-shadow:0 5px 14px #7e4d3436;overflow:hidden}
 #tiles {display:grid;grid-template-columns:repeat(3,1fr);aspect-ratio:1;gap:1px;background:#fff5de}
 .tile {padding:0;min-width:0;aspect-ratio:1;border:0;background:#fff5de;touch-action:none}.tile.selected {outline:3px solid #fff1ba;outline-offset:-3px;filter:brightness(1.2)}
-.tile-face {position:relative;display:block;width:100%;height:100%;background-repeat:no-repeat;background-size:300% 300%;pointer-events:none}
+.tile-face {position:relative;display:block;width:100%;height:100%;overflow:hidden;pointer-events:none}
+.tile-face img {position:absolute;width:300%;height:300%;object-fit:cover}
+.tile-face img,.peek-image {object-position:var(--photo-focus)}
 .tile:focus-visible,.scratch-picture canvas:focus-visible {filter:brightness(.76)}.peek-image {z-index:3;padding:5px;pointer-events:none}.puzzle-info {gap:.4rem;flex-wrap:wrap}.puzzle-info>* {padding:.33rem .63rem;color:#69394a}
 #solved p {font:700 1.24rem var(--hand);margin:.9rem 0 0}
 #envelope-wrap {margin:2.4rem 0 1.2rem}
