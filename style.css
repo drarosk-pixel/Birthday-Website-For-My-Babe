@@ -78,7 +78,12 @@ button,img {user-select:none;-webkit-user-drag:none}
 .tiny-hearts {font-size:.67rem;color:#a27e64}.album {padding:2.7rem 1rem 1.6rem}
 .album-inner {width:min(100%,950px)}.polaroids {width:100%;margin:auto;display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(4px,1vw,15px);align-items:center;padding:1rem 3%}
 .polaroid {background:#fff9ee;padding:5% 5% 11%;box-shadow:0 6px 11px #664b3036;transform:rotate(var(--angle));animation:photo-in .82s var(--delay) var(--settle) backwards}
-.polaroid img {width:100%;height:clamp(100px,22vh,230px);object-fit:cover;display:block}.polaroid:nth-child(3n) {scale:.9}.polaroid:nth-child(2n+5) {scale:.86}
+.polaroid .photo-window {position:relative;overflow:hidden;width:100%;height:clamp(100px,22vh,230px)}
+.photo-window img {
+  position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;
+  object-position:var(--photo-focus);transform-origin:var(--photo-focus);transform:scale(var(--photo-zoom));
+}
+.polaroid:nth-child(3n) {scale:.9}.polaroid:nth-child(2n+5) {scale:.86}
 .album h2 {font-size:clamp(1.8rem,3.7vw,3.1rem);margin:.7rem 0 0}.text-button {font-weight:800;color:#864349;background:none;border:0;border-bottom:1px solid #bd987a;padding:.4rem .2rem .2rem;font-size:1rem}.text-button span {padding-left:.3rem}
 .museum {background:radial-gradient(ellipse at 50% 58%,#6c3d2547,transparent 36%),radial-gradient(ellipse at center,#4a1635,#290d21 60%,#190915);color:#fff0e9}
 .room-wrap {width:min(100%,35rem);margin:auto}.room-wrap>.eyebrow,.eyebrow {text-transform:uppercase;letter-spacing:.19em;font-size:.75rem;font-weight:900;margin-bottom:.43rem;color:#93556a}
@@ -237,7 +242,7 @@ button,img {user-select:none;-webkit-user-drag:none}
 }
 #birthday-wish {animation:rise .72s .28s var(--settle) backwards}
 @media(max-width:600px) {
- .invitation {top:15%}.heart-target {top:35%;width:clamp(112px,29vw,145px)}.bow {left:22%;top:69%;width:105px}.opening-foot {bottom:6%}.sound {width:38px;height:38px}.tree-note {bottom:6%;left:5%}.polaroids {grid-template-columns:repeat(4,1fr);gap:5px;padding:1.2rem 1%}.polaroid img {height:clamp(90px,25vw,135px)}.album {padding-left:.5rem;padding-right:.5rem}.centered {padding-top:3.6rem}
+ .invitation {top:15%}.heart-target {top:35%;width:clamp(112px,29vw,145px)}.bow {left:22%;top:69%;width:105px}.opening-foot {bottom:6%}.sound {width:38px;height:38px}.tree-note {bottom:6%;left:5%}.polaroids {grid-template-columns:repeat(4,1fr);gap:5px;padding:1.2rem 1%}.polaroid .photo-window {height:clamp(90px,25vw,135px)}.album {padding-left:.5rem;padding-right:.5rem}.centered {padding-top:3.6rem}
 }
 @media (prefers-reduced-motion:no-preference) {
   .heart-target img {scale:var(--pull-scale,1);transition:scale .12s ease-out}
@@ -247,14 +252,14 @@ button,img {user-select:none;-webkit-user-drag:none}
     width:min(88vw,24rem);grid-template-columns:repeat(2,minmax(0,1fr));
     gap:clamp(12px,4vw,18px);padding:1rem 0;
   }
-  .album .polaroid img {height:auto;aspect-ratio:4/5}
+  .album .polaroid .photo-window {height:auto;aspect-ratio:4/5}
   .album .polaroid:is(:first-child,:last-child) {
     grid-column:1/-1;justify-self:center;width:90%;padding:3% 3% 6%;
   }
-  .album .polaroid:is(:first-child,:last-child) img {aspect-ratio:4/3}
+  .album .polaroid:is(:first-child,:last-child) .photo-window {aspect-ratio:4/3}
   .letter-paper {line-height:1.46}
 }
-@media(max-height:540px) and (orientation:landscape) {.centered {padding:1.1rem .8rem}.opening {min-height:305px}.invitation {top:11%}.bow {width:84px}.heart-target {width:88px}.room-wrap h2 {font-size:1.8rem}.door-frame {min-height:175px;height:45vh}.gold-frame,.puzzle-frame {width:36vh}.room-wrap>p:not(.eyebrow) {margin:.3rem auto}.opening-foot {bottom:3%}.room-wrap .pink-button {margin:.5rem auto}.album-inner {max-width:650px}.album .polaroid img {height:21vh}}
+@media(max-height:540px) and (orientation:landscape) {.centered {padding:1.1rem .8rem}.opening {min-height:305px}.invitation {top:11%}.bow {width:84px}.heart-target {width:88px}.room-wrap h2 {font-size:1.8rem}.door-frame {min-height:175px;height:45vh}.gold-frame,.puzzle-frame {width:36vh}.room-wrap>p:not(.eyebrow) {margin:.3rem auto}.opening-foot {bottom:3%}.room-wrap .pink-button {margin:.5rem auto}.album-inner {max-width:min(650px,146vh)}.album .polaroid .photo-window {height:clamp(100px,31vh,160px)}}
 @media(prefers-reduced-motion:reduce) {*,*:before,*:after {animation-duration:.01ms!important;animation-delay:0ms!important;transition-duration:.01ms!important;animation-iteration-count:1!important}.particle,.rose-rain {display:none}}
 @media(forced-colors:active) {button:focus-visible,[role="button"]:focus-visible {outline:2px solid Highlight;outline-offset:-2px}}
 

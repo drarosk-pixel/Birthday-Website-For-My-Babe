@@ -6,6 +6,6 @@ Pull and release the bow (or tap the heart), open the present, explore the album
 
 ## Add your photos
 
-Replace `assets/photos/01.jpg` through `assets/photos/08.jpg` with your own JPEG photos, keeping the filenames. Square crops work well. The album and scratch gallery use all eight images. The puzzle uses `08.jpg`. Update the eight captions at the top of `birthday.js` if desired.
+Replace `assets/photos/01.jpg` through `assets/photos/08.jpg` with your own JPEG photos, keeping the filenames. Square crops work well. The scratch gallery uses all eight images. The Polaroid album uses the portraits in `assets/album/`. Each entry in `albumPhotos` in `birthday.js` sets the focal point and zoom for its frame. The puzzle uses `08.jpg`. Update the eight captions at the top of `birthday.js` if desired.
 
 The prototype uses original illustrated artwork, sample still-life photographs, and a synthesized birthday note. To use your own voice, replace `assets/birthday-note.mp3`. The letter is in `index.html`.

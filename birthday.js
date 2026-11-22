@@ -581,11 +581,31 @@ $("#open-gift").addEventListener("click",()=>{
   later(()=>show("from"), 1250);
   window.setTimeout(()=>rain.replaceChildren(), 2880);
 });
-const angles=[-5,3,-4,-5,5,7,4,6];
-captions.forEach((title,i)=>{
-  const frame=document.createElement("div");frame.className="polaroid";
-  frame.style.setProperty("--angle",angles[i]+"deg");frame.style.setProperty("--delay",(.18+i*.105)+"s");
-  const img=new Image();img.src=photoPath(i);img.alt=title;frame.append(img);$("#polaroids").append(frame);
+const albumPhotos = [
+  {src:"assets/album/waterfront.jpg", alt:"Gunjan in a cream dress by the water", focus:"55% 65%", zoom:1.04, angle:-5},
+  {src:"assets/album/floral-dress.jpg", alt:"Gunjan looking over her shoulder in a floral dress", focus:"44% 77%", zoom:1.13, angle:3},
+  {src:"assets/album/cafe.jpg", alt:"Gunjan smiling at a café table", focus:"55% 10%", zoom:1.09, angle:-4},
+  {src:"assets/album/mirror.jpg", alt:"Gunjan taking a selfie in a round mirror", focus:"2% 53%", zoom:1.42, angle:-5},
+  {src:"assets/album/sunlit-portrait.jpg", alt:"Gunjan in a red top, smiling in the sunlight", focus:"52% 58%", zoom:1.16, angle:5},
+  {src:"assets/album/garden.jpg", alt:"Gunjan standing beneath a garden pergola", focus:"55% 71%", zoom:1.55, angle:7},
+  {src:"assets/album/evening-smile.jpg", alt:"Gunjan smiling against a dark background", focus:"78% 30%", zoom:1, angle:4},
+  {src:"assets/album/terrace.jpg", alt:"Gunjan resting her chin on her hand on the terrace at night", focus:"52% 57%", zoom:1.08, angle:6}
+];
+albumPhotos.forEach((photo, i) => {
+  const frame = document.createElement("div");
+  frame.className = "polaroid";
+  frame.style.setProperty("--angle", photo.angle + "deg");
+  frame.style.setProperty("--delay", (.18 + i*.105) + "s");
+  const crop = document.createElement("div");
+  crop.className = "photo-window";
+  crop.style.setProperty("--photo-focus", photo.focus);
+  crop.style.setProperty("--photo-zoom", photo.zoom);
+  const img = new Image();
+  img.alt = photo.alt;
+  img.src = photo.src;
+  crop.append(img);
+  frame.append(crop);
+  $("#polaroids").append(frame);
 });
 const door = $("#door"), knocker = $(".knocker");
 let knocks = 0;
