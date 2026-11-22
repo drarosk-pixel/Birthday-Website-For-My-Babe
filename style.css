@@ -1,4 +1,4 @@
-:root { color-scheme:light; --wine:#692139; --ink:#432332; --berry:#a9275d; --script:"Great Vibes",cursive; --hand:"Caveat",Georgia,serif; --blush:radial-gradient(ellipse at 96% 105%,#f8cadf,transparent 44%),linear-gradient(155deg,#fff4eb,#fbe4e1 82%); font:100%/1.45 "Nunito","Trebuchet MS",sans-serif; color:var(--ink); }
+:root { color-scheme:light; --wine:#692139; --ink:#432332; --settle:cubic-bezier(.2,.72,.23,1); --berry:#a9275d; --script:"Great Vibes",cursive; --hand:"Caveat",Georgia,serif; --blush:radial-gradient(ellipse at 96% 105%,#f8cadf,transparent 44%),linear-gradient(155deg,#fff4eb,#fbe4e1 82%); font:100%/1.45 "Nunito","Trebuchet MS",sans-serif; color:var(--ink); }
 * {box-sizing:border-box}
 body {margin:0;background:#fff4eb}
 button {font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
@@ -9,7 +9,7 @@ h1,h2,h3,p {margin:0}
 button,img {user-select:none;-webkit-user-drag:none}
 [hidden] {display:none!important}
 .scene {position:relative;isolation:isolate;min-height:100vh;min-height:100svh;overflow:hidden}
-.scene.enter {z-index:1;animation:appear .62s cubic-bezier(.4,0,.2,1) both}
+.scene.enter {z-index:1}
 .scene.departing {position:fixed;left:0;right:0;z-index:0;pointer-events:none}
 .centered {display:grid;place-items:center;text-align:center;padding:3rem 1rem}
 .sr-only {position:absolute;top:0;left:0;width:1px;height:1px;padding:0;border:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
@@ -40,7 +40,7 @@ button,img {user-select:none;-webkit-user-drag:none}
 @media (max-width:600px), (hover:none) and (pointer:coarse) {
   .ribbon-screen {min-height:100vh;min-height:100dvh}
 }
-.ribbon-screen h2 {font:400 clamp(4.2rem,13vmin,9.8rem)/.94 var(--script);margin:.6rem 0 .3rem;animation:rise .9s both}
+.ribbon-screen h2 {font:400 clamp(4.2rem,13vmin,9.8rem)/.94 var(--script);margin:.6rem 0 .3rem}
 .ribbon-screen p {font-size:clamp(.9rem,1.5vw,1.35rem)}
 .flourish {width:clamp(6rem,17vw,14rem);height:12px;border:2px solid #f1bb75;border-left-color:transparent;border-right-color:transparent;border-radius:50%;transform:rotate(-2deg);margin:.8rem 0 1.2rem}
 .tree {height:100vh;height:100dvh;background:radial-gradient(ellipse at 57% 65%,#ffffed 2%,transparent 53%),radial-gradient(ellipse at 12% 77%,#facfc3,transparent 55%),linear-gradient(#fff7ea,#fce5db)}
@@ -55,13 +55,17 @@ button,img {user-select:none;-webkit-user-drag:none}
 }
 .cream {background:radial-gradient(ellipse at 50% 48%,#fbf2d9,#f9ecca 70%,#f5e7c5);color:#652f29}
 .gift-open {border:0;background:none;display:grid;justify-items:center;gap:.5rem}.gift-open img {width:clamp(104px,15vmin,175px);height:auto;filter:drop-shadow(0 8px 8px #723b3326);animation:float 3s ease-in-out infinite}.gift-open strong {font:400 clamp(2rem,4.8vmin,3.8rem) var(--script);margin-top:.5rem}.gift-open span {font:italic 1rem Georgia;color:#815e49}
-.rose-rain,#particles {position:absolute;pointer-events:none;inset:0;overflow:hidden}.rose-rain img {position:absolute;width:clamp(3.5rem,8vw,8rem);animation:rosedrop 2.6s ease-in-out both}
+.rose-rain,#particles {position:fixed;pointer-events:none;inset:0;overflow:hidden}
+.rose-rain {z-index:5}
+.rose-rain img {position:absolute;width:var(--rose-size);translate:-50% -50%;animation:rosedrop 2.32s both}
+.rose-rain img:nth-child(4n) {filter:sepia(.5) saturate(.9)}
+.rose-rain img:nth-child(5n) {filter:saturate(.5) brightness(1.16)}
 .corner-rose {position:absolute;top:-3rem;left:-1.6rem;width:clamp(6rem,12vw,12rem);transform:rotate(167deg);opacity:.8}
 .from-card h2,.album h2 {font:400 clamp(2.9rem,6.5vw,5.4rem)/1.2 var(--script);color:#693028}
 .from-card p {font:700 clamp(1.3rem,2.5vw,2.1rem) var(--hand)}.from-card img {width:clamp(135px,23vmin,245px);display:block;margin:1.4rem auto .5rem;mix-blend-mode:multiply}
 .tiny-hearts {font-size:.67rem;color:#a27e64}.album {padding:2.7rem 1rem 1.6rem}
 .album-inner {width:min(100%,950px)}.polaroids {width:100%;margin:auto;display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(4px,1vw,15px);align-items:center;padding:1rem 3%}
-.polaroid {background:#fff9ee;padding:5% 5% 11%;box-shadow:0 6px 11px #664b3036;transform:rotate(var(--angle));animation:photo-in .7s var(--delay) both}
+.polaroid {background:#fff9ee;padding:5% 5% 11%;box-shadow:0 6px 11px #664b3036;transform:rotate(var(--angle));animation:photo-in .82s var(--delay) var(--settle) backwards}
 .polaroid img {width:100%;height:clamp(100px,22vh,230px);object-fit:cover;display:block}.polaroid:nth-child(3n) {scale:.9}.polaroid:nth-child(2n+5) {scale:.86}
 .album h2 {font-size:clamp(1.8rem,3.7vw,3.1rem);margin:.7rem 0 0}.text-button {font-weight:800;color:#864349;background:none;border:0;border-bottom:1px solid #bd987a;padding:.4rem .2rem .2rem;font-size:1rem}.text-button span {padding-left:.3rem}
 .museum {background:radial-gradient(ellipse at 50% 58%,#6c3d2547,transparent 36%),radial-gradient(ellipse at center,#4a1635,#290d21 60%,#190915);color:#fff0e9}
@@ -72,7 +76,7 @@ button,img {user-select:none;-webkit-user-drag:none}
 .door-frame {position:relative;width:clamp(155px,28vmin,265px);height:clamp(240px,49vmin,433px);margin:1.45rem auto .7rem;perspective:900px;border-radius:47% 47% 0 0 / 24% 24% 0 0;background:#e8a552;box-shadow:0 0 50px #e3a64a33,0 10px 25px #160812}
 .inside,.door {position:absolute;inset:0;border-radius:inherit;display:flex;align-items:center;text-align:center}
 .inside {padding:1rem;justify-content:center;flex-direction:column;background:radial-gradient(ellipse,#fff1b8,#e2b263 52%,#3f282a 92%);color:#5a3628}.inside strong {font:700 1.5rem var(--hand)}.inside span {font-size:.86rem}
-.door {border:5px ridge #73324b;transform-origin:left;transition:transform 1.1s;flex-direction:column;background:radial-gradient(ellipse at 70% 30%,#77224f,#4f133a 80%);box-shadow:inset 0 0 0 5px #572041,inset 0 0 0 7px #aa5c704f;backface-visibility:hidden}
+.door {border:5px ridge #73324b;transform-origin:left;transition:transform 1.22s cubic-bezier(.4,0,.16,1);flex-direction:column;background:radial-gradient(ellipse at 70% 30%,#77224f,#4f133a 80%);box-shadow:inset 0 0 0 5px #572041,inset 0 0 0 7px #aa5c704f;backface-visibility:hidden}
 .door.open {transform:rotateY(-109deg)}.door-sign {background:#fff3de;color:#562c38;display:block;font:900 clamp(.69rem,1.4vmin,.88rem)/1.13 "Nunito",sans-serif;padding:.42rem .65rem;margin-top:20%;transform:rotate(-4deg);box-shadow:1px 2px 5px #200b1a}
 .knocker {position:relative;margin-top:18%;width:25%;aspect-ratio:1;border:clamp(3px,.5vmin,6px) ridge #deb664;border-radius:50%;box-shadow:0 4px 4px #290d23,inset 0 1px 3px #290d23}.knocker i {position:absolute;left:36%;top:-25%;width:28%;aspect-ratio:1;background:radial-gradient(circle at 35% 24%,#fff6b8,#c58b39 65%,#80532b);border-radius:50%}
 .knocker.hit {animation:knock .28s}.knocks {color:#f2c979;letter-spacing:.16em}
@@ -82,18 +86,19 @@ button,img {user-select:none;-webkit-user-drag:none}
 .photo-nav,.puzzle-info {display:flex;align-items:center;justify-content:center;gap:.85rem;margin:.65rem 0;font-weight:800;font-size:.88rem}.photo-nav button,.puzzle-info>* {border:0;border-radius:999px;background:#fff9f1c9;box-shadow:0 2px 7px #7b33471a}.photo-nav button {width:37px;height:34px;font:1.6rem/1 Georgia}.photo-nav span {min-width:4em}
 .pink-button {display:block;margin:1rem auto .9rem;border:1px solid #c44778;border-radius:10px;padding:.7rem 1.6rem;width:min(100%,15.7rem);font-size:1rem;font-weight:900;letter-spacing:.012em;color:white;background:linear-gradient(110deg,#e2588a,#bf285e);box-shadow:0 5px 12px #a2316230}.pink-button:hover:enabled {filter:brightness(1.055)}.pink-button:disabled {opacity:.56}
 .room-progress {display:flex;align-items:center;justify-content:center;gap:.33rem}.room-progress i {display:inline-block;width:.46rem;height:.46rem;border:1px solid #c17e94;border-radius:50%}.room-progress i.filled {background:#b94570}
-.puzzle-frame {position:relative;padding:5px;background:#fff9ed;border-radius:9px;box-shadow:0 5px 14px #7e4d3436;overflow:hidden}
+.puzzle-frame {position:relative;isolation:isolate;padding:5px;background:#fff9ed;border-radius:9px;box-shadow:0 5px 14px #7e4d3436;overflow:hidden}
 #tiles {display:grid;grid-template-columns:repeat(3,1fr);aspect-ratio:1;gap:1px;background:#fff5de}
-.tile {padding:0;min-width:0;aspect-ratio:1;border:0;background-repeat:no-repeat;background-size:300% 300%;touch-action:none}.tile.selected {outline:3px solid #fff1ba;outline-offset:-3px;filter:brightness(1.2)}
-.tile:focus-visible,.scratch-picture canvas:focus-visible {filter:brightness(.76)}.peek-image {padding:5px;pointer-events:none}.puzzle-info {gap:.4rem;flex-wrap:wrap}.puzzle-info>* {padding:.33rem .63rem;color:#69394a}
+.tile {padding:0;min-width:0;aspect-ratio:1;border:0;background:#fff5de;touch-action:none}.tile.selected {outline:3px solid #fff1ba;outline-offset:-3px;filter:brightness(1.2)}
+.tile-face {position:relative;display:block;width:100%;height:100%;background-repeat:no-repeat;background-size:300% 300%;pointer-events:none}
+.tile:focus-visible,.scratch-picture canvas:focus-visible {filter:brightness(.76)}.peek-image {z-index:3;padding:5px;pointer-events:none}.puzzle-info {gap:.4rem;flex-wrap:wrap}.puzzle-info>* {padding:.33rem .63rem;color:#69394a}
 #solved p {font:700 1.24rem var(--hand);margin:.9rem 0 0}
 #envelope-wrap {margin:2.4rem 0 1.2rem}.envelope {display:block;position:relative;width:min(270px,69vw);aspect-ratio:1.58;margin:auto;border:0;padding:0;background:#99602f;box-shadow:0 10px 24px #81452140;perspective:700px}
-.envelope-front,.flap,.paper-peek {position:absolute;inset:0}.paper-peek {background:repeating-linear-gradient(#fff8e9 0 14px,#cfb38e 15px,#fff8e9 16px);inset:9% 7% 5%;padding-top:.5rem;color:#ac3659;transition:transform .55s .25s}.envelope-front {background:linear-gradient(34deg,#a96e39 0 49.6%,transparent 50%) left/51% 100% no-repeat,linear-gradient(-34deg,#ad723f 0 49.6%,transparent 50%) right/51% 100% no-repeat,linear-gradient(0deg,#ba8550,#9f6737);clip-path:polygon(0 0,50% 51%,100% 0,100% 100%,0 100%)}
+.envelope-front,.flap,.paper-peek {position:absolute;inset:0}.paper-peek {background:repeating-linear-gradient(#fff8e9 0 14px,#cfb38e 15px,#fff8e9 16px);inset:9% 7% 5%;padding-top:.5rem;color:#ac3659;transition:transform .65s .18s var(--settle)}.envelope-front {background:linear-gradient(34deg,#a96e39 0 49.6%,transparent 50%) left/51% 100% no-repeat,linear-gradient(-34deg,#ad723f 0 49.6%,transparent 50%) right/51% 100% no-repeat,linear-gradient(0deg,#ba8550,#9f6737);clip-path:polygon(0 0,50% 51%,100% 0,100% 100%,0 100%)}
 .flap {background:linear-gradient(#c7985f,#ae723f);clip-path:polygon(0 0,100% 0,50% 58%);transform-origin:top;transition:transform .48s;filter:drop-shadow(0 3px 2px #5d391e)}
 .seal {position:absolute;left:50%;top:52%;transform:translate(-50%,-50%) rotate(-7deg);width:2.5rem;aspect-ratio:1;border-radius:44% 49% 43% 47%;border:4px ridge #d96984;background:#b94268;color:#f39caf;display:grid;place-items:center;box-shadow:1px 3px 4px #743e3c75}
-.envelope.open .flap {transform:rotateX(176deg)}.envelope.open .seal {opacity:0}.envelope.open .paper-peek {transform:translateY(-35%)}.hand {font:1.25rem var(--hand);margin-top:1rem}
+.envelope.open .flap {transform:rotateX(176deg)}.envelope.open .seal {opacity:0}.envelope.open .paper-peek {transform:translateY(-57%)}.hand {font:1.25rem var(--hand);margin-top:1rem}
 .letter-paper,.promise-paper {margin:1.2rem auto 0;width:min(100%,365px);background:linear-gradient(120deg,#fffdf5,#fffaf2);padding:1.55rem;text-align:left;box-shadow:0 8px 22px #773d5420,0 1px 4px #773d541c}
-.letter-paper {font:500 1.35rem/1.32 var(--hand);transform:rotate(-.55deg)}.letter-paper p+p {margin-top:.88rem}.signature {text-align:right;font-weight:700;color:#993854}
+.letter-paper {transform-origin:top center;font:500 1.35rem/1.32 var(--hand);transform:rotate(-.55deg)}.letter-paper p+p {margin-top:.88rem}.signature {text-align:right;font-weight:700;color:#993854}
 .voice-note {margin:.7rem auto;width:min(100%,365px);display:flex;align-items:center;gap:.7rem;padding:.5rem .75rem;background:#fffaf6;border-radius:13px;box-shadow:0 3px 9px #88465b1a;text-align:left}.voice-note button {width:38px;height:38px;border:none;border-radius:50%;background:#c23969;color:white}.voice-note b {font-size:.87rem}.voice-note output {margin-left:auto;font-size:.85rem}.wave {display:block;width:73px;height:9px;margin:2px 0;background:repeating-linear-gradient(90deg,#c8547b 0 2px,transparent 2px 4px);clip-path:polygon(0 42%,8% 0,18% 25%,27% 9%,38% 48%,46% 13%,55% 25%,63% 1%,75% 25%,88% 15%,100% 35%,100% 62%,86% 84%,73% 69%,62% 100%,47% 84%,30% 100%,17% 80%,7% 98%,0 58%)}
 .letter-heart {font-size:1.9rem}.letter-heart+.pink-button {margin-top:.25rem}.promise-paper {position:relative;padding:1.3rem 1.5rem;border:1px solid #e5d7c4}.promise-paper h3,.promise-paper>p {text-align:center}.promise-paper>p {font:1.15rem var(--hand);margin-bottom:.85rem}.promise-paper label {display:flex;align-items:center;gap:.66rem;padding:.57rem 0;border-bottom:1px dashed #e7d5c5;font-size:1rem}.promise-paper input {accent-color:#b33064;width:1.12rem;height:1.12rem;flex:none}
 #stamp {position:absolute;inset:40% auto auto 50%;transform:translateX(-50%) rotate(-12deg);border:4px double #ad3a55;background:#ffefe5ec;color:#ac3355;padding:.2rem .8rem;line-height:.83;font:900 1.35rem/.9 Georgia;text-transform:uppercase;text-align:center;letter-spacing:.07em}#stamp small {font:700 .78rem var(--hand)}
@@ -101,9 +106,80 @@ button,img {user-select:none;-webkit-user-drag:none}
 #particles {position:fixed;z-index:8}.particle {position:absolute;pointer-events:none;animation:burst var(--duration,1s) ease-out forwards}.confetti {width:7px;height:11px;animation:confetti var(--duration,2.6s) ease-in both}
 @keyframes appear {from{opacity:0}to{opacity:1}}@keyframes rise {from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 @keyframes heartbeat {0%,100%{transform:translateY(1px) scale(.98)}50%{transform:translateY(-4px) scale(1.025)}}@keyframes heart-pop {45%{transform:scale(1.17)}100%{opacity:0;transform:scale(.5)}}
-@keyframes float {50%{transform:translateY(-6px) rotate(-2deg)}}@keyframes rosedrop {0%{transform:translateY(-125vh) rotate(-70deg);opacity:0}15%{opacity:1}55%,74%{transform:translateY(0) rotate(var(--spin))}100%{transform:translateY(125vh) rotate(100deg)}}
-@keyframes photo-in {from{opacity:0;translate:0 14px}to{opacity:1;translate:0 0}}@keyframes knock {40%{transform:perspective(100px) rotateX(50deg)}}
+@keyframes float {50%{transform:translateY(-6px) rotate(-2deg)}}@keyframes rosedrop {
+  0% {transform:translate(6%,var(--fall-from)) rotate(-65deg);animation-timing-function:cubic-bezier(.33,.02,.24,1)}
+  45% {transform:translate(0,0) rotate(var(--spin));animation-timing-function:ease-in-out}
+  59% {transform:translate(-2%,4%) rotate(var(--spin));animation-timing-function:cubic-bezier(.52,.02,.8,.56)}
+  100% {transform:translate(14%,var(--fall-to)) rotate(95deg)}
+}
+@keyframes photo-in {
+  from {opacity:0;transform:translateY(28px) rotate(calc(var(--angle) * 2)) scale(.94)}
+  to {opacity:1;transform:rotate(var(--angle))}
+}@keyframes knock {40%{transform:perspective(100px) rotateX(50deg)}}
 @keyframes burst {to{opacity:0;transform:translate(var(--x),var(--y)) rotate(var(--spin)) scale(.65)}}@keyframes confetti {from{transform:translateY(-3vh) rotate(0)}to{transform:translate(var(--x),105vh) rotate(var(--spin));opacity:.2}}
+/* Light bridges are independent of the pages so they can cross the cut. */
+#scene-light {position:fixed;z-index:4;pointer-events:none;opacity:0}
+#scene-light.iris {
+  top:50%;left:50%;translate:-50% -50%;width:min(48vw,42vh,340px);
+  aspect-ratio:1;border-radius:50%;background:var(--glow);
+}
+#scene-light.dedication-light {
+  top:36%;--glow:radial-gradient(circle,#be1155 35%,#d82c70 55%,#ed6b9da6 64%,transparent 71%);
+}
+#scene-light.tree-light {
+  --glow:radial-gradient(circle,#fff6df 33%,#ffe5be 51%,#f4bc91c9 61%,transparent 71%);
+}
+#scene-light.doorway-light {inset:0;background:#251222}
+
+/* Keep the individual beats on the same timeline as their scene entrance. */
+.ribbon-screen h2 span {display:block;animation:script-reveal .8s .69s var(--settle) backwards}
+.ribbon-screen h2 span + span {animation-delay:1.03s}
+.ribbon-screen p:first-child {animation:rise .53s .49s var(--settle) backwards}
+.ribbon-screen .flourish {animation:draw-line .72s 1.35s var(--settle) backwards}
+.ribbon-screen p:last-child {animation:rise .58s 1.66s var(--settle) backwards}
+@keyframes script-reveal {
+  from {opacity:0;clip-path:inset(-35% 100% -40% -22%);transform:translateY(6px) rotate(-2deg)}
+  to {opacity:1;clip-path:inset(-35% -22% -40% -22%);transform:none}
+}
+@keyframes draw-line {from{opacity:0;transform:rotate(-5deg) scaleX(0)}to{opacity:1;transform:rotate(-2deg) scaleX(1)}}
+#gift .gift-open {animation:rise .8s .42s var(--settle) backwards;transition:opacity .35s,scale .45s var(--settle)}
+#gift .gift-open.unwrapped {opacity:0;scale:.9}
+.from-card h2 {animation:rise .76s .66s var(--settle) backwards}
+.from-card p {animation:rise .66s .96s var(--settle) backwards}
+.from-card img {animation:portrait-in 1s 1.13s var(--settle) backwards}
+.from-card .tiny-hearts {display:block;animation:appear .65s 1.58s backwards}
+@keyframes portrait-in {from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
+.album h2 {animation:rise .65s 1.06s var(--settle) backwards}
+.album .text-button {animation:rise .55s 1.25s var(--settle) backwards}
+
+.room-wrap > .eyebrow {animation:rise .56s .22s var(--settle) backwards}
+.room-wrap > h2 {animation:rise .66s .30s var(--settle) backwards}
+.room-wrap > h2 + p {animation:appear .62s .43s backwards}
+.door-frame,.gold-frame,.puzzle-frame,#envelope-wrap,.promise-paper {animation:mount .77s .40s var(--settle) backwards}
+@keyframes mount {from{opacity:0;transform:translateY(16px) scale(.975)}to{opacity:1;transform:none}}
+.room-wrap > :is(.knocks,.plaque,.photo-nav,.puzzle-info,.pink-button,.room-progress) {animation:rise .57s .57s var(--settle) backwards}
+.door-frame.welcoming .inside strong {animation:rise .62s .28s var(--settle) backwards}
+.door-frame.welcoming .inside span {animation:appear .7s .53s backwards}
+.scratch-picture .previous-print {pointer-events:none;box-shadow:4px 0 10px #462a2d40}
+#solved {animation:rise .6s .22s var(--settle) backwards}
+.seal {transition:opacity .21s,scale .25s}
+.envelope.open .seal {scale:.9}
+#envelope-wrap:has(.open) .hand {transition:opacity .24s;opacity:0}
+.letter-paper p {animation:appear .48s .28s backwards}
+#letter-content > :is(.voice-note,.letter-heart,.pink-button) {animation:rise .62s .54s var(--settle) backwards}
+#checks label {animation:rise .52s var(--settle) backwards}
+#checks label:nth-child(1) {animation-delay:.48s}
+#checks label:nth-child(2) {animation-delay:.57s}
+#checks label:nth-child(3) {animation-delay:.66s}
+#checks label:nth-child(4) {animation-delay:.75s}
+#checks label:nth-child(5) {animation-delay:.84s}
+#stamp {animation:press-stamp .5s backwards}
+@keyframes press-stamp {
+  0% {opacity:0;transform:translate(-50%,-18px) rotate(-19deg) scale(1.38)}
+  63% {opacity:1;transform:translateX(-50%) rotate(-12deg) scale(.95)}
+  100% {transform:translateX(-50%) rotate(-12deg)}
+}
+#birthday-wish {animation:rise .72s .28s var(--settle) backwards}
 @media(max-width:600px) {
  .invitation {top:15%}.heart-target {top:35%;width:clamp(112px,29vw,145px)}.bow {left:22%;top:69%;width:105px}.opening-foot {bottom:6%}.sound {width:38px;height:38px}.tree-note {bottom:6%;left:5%}.polaroids {grid-template-columns:repeat(4,1fr);gap:5px;padding:1.2rem 1%}.polaroid img {height:clamp(90px,25vw,135px)}.album {padding-left:.5rem;padding-right:.5rem}.centered {padding-top:3.6rem}
 }

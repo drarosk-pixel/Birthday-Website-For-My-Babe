@@ -9,18 +9,77 @@ const sounds = {context:null, active:false, timer:0, beat:0};
 let current = "opening";
 let sceneTimers = [];
 let stopTree = null;
+let sceneMotion = [];
+const settle = "cubic-bezier(.2,.72,.23,1)";
 
 function later(callback, delay) {
   sceneTimers.push(window.setTimeout(callback, delay));
 }
 function announce(message) { $("#announce").textContent = message; }
+
+// The bow and the dedication expand from a point of light. The doorway dims
+// through plum, and the pages within the museum travel in the same direction.
+function transitionBetween(outgoing, incoming) {
+  const light = $("#scene-light");
+  const name = incoming.id;
+  const iris = name === "dedication" || name === "tree";
+  const doorway = ["gift", "museum", "scratch"].includes(name);
+  const gallery = ["puzzle", "letter", "promises"].includes(name);
+  const duration = iris ? 1040 : doorway ? 900 : 780;
+  const play = (element, frames) => sceneMotion.push(
+    element.animate(frames, {duration, easing:"ease-in-out", fill:"both"})
+  );
+  const incomingOffset = gallery ? "translateX(20px)" : "none";
+  play(incoming, [
+    {opacity:0, transform:incomingOffset},
+    {opacity:0, transform:incomingOffset, offset:iris ? .38 : doorway ? .26 : .06},
+    {opacity:1, transform:"none", offset:iris ? .59 : doorway ? .65 : 1},
+    {opacity:1, transform:"none"}
+  ]);
+  const oldContent = outgoing.querySelector(".from-card,.album-inner,.room-wrap,.tree-note");
+  if (oldContent) {
+    play(oldContent, [
+      {opacity:1},
+      {opacity:0, offset:.46},
+      {opacity:0}
+    ]);
+  }
+  if (gallery) {
+    play(outgoing, [{transform:"none"}, {transform:"translateX(-16px)", opacity:.35}]);
+  }
+  if (iris) {
+    light.className = "iris " + name + "-light";
+    const diameter = light.offsetWidth;
+    const endScale = 3 * Math.hypot(innerWidth, innerHeight) / diameter;
+    play(light, [
+      {opacity:0, transform:"scale(.04)"},
+      {opacity:1, transform:"scale(.32)", offset:.14},
+      {opacity:1, transform:"scale(" + endScale + ")", offset:.60},
+      {opacity:0, transform:"scale(" + endScale + ")"}
+    ]);
+  } else if (doorway) {
+    light.className = "doorway-light";
+    play(light, [{opacity:0}, {opacity:.89, offset:.42}, {opacity:.83, offset:.52}, {opacity:0}]);
+  }
+  later(() => {
+    outgoing.hidden = true;
+    outgoing.classList.remove("departing");
+    outgoing.style.removeProperty("top");
+    sceneMotion.forEach(animation => animation.cancel());
+    sceneMotion = [];
+  }, duration);
+}
+
 function show(name) {
   sceneTimers.forEach(clearTimeout);
   sceneTimers = [];
+  sceneMotion.forEach(animation => animation.cancel());
+  sceneMotion = [];
   if (stopTree) { stopTree(); stopTree = null; }
   clearInterval(puzzleClock);
   if (current === "letter") $("#voice").pause();
   const previous = document.getElementById(current);
+  const scene = document.getElementById(name);
   const outgoing = reduced.matches ? null : previous;
   const previousScroll = window.scrollY;
   current = name;
@@ -34,23 +93,18 @@ function show(name) {
   }
   if (outgoing) {
     outgoing.style.top = -previousScroll + "px";
-    later(() => {
-      outgoing.hidden = true;
-      outgoing.classList.remove("departing");
-      outgoing.style.removeProperty("top");
-    }, 650);
+    transitionBetween(outgoing, scene);
   }
   window.scrollTo(0, 0);
-  const scene = document.getElementById(name);
   const heading = scene.querySelector("h1,h2,button") || scene;
   if (!heading.matches("button")) heading.tabIndex = -1;
   heading.focus({preventScroll:true});
-  if (name === "dedication") later(() => show("tree"), reduced.matches ? 1800 : 2900);
+  if (name === "dedication") later(() => show("tree"), reduced.matches ? 1800 : 3600);
   if (name === "tree") {
     stopTree = bloomTree($("#tree-art"), reduced);
     later(() => show("gift"), reduced.matches ? 2000 : 4900);
   }
-  if (name === "from") later(() => show("album"), 3200);
+  if (name === "from") later(() => show("album"), reduced.matches ? 3200 : 4200);
   if (name === "scratch") renderScratch();
   if (name === "puzzle") startPuzzle();
   if (name === "promises") updatePromises();
@@ -329,7 +383,8 @@ function bloomTree(canvas, motion) {
     }
   }
 
-  const start = performance.now();
+  // Let the trunk emerge as the warm circle clears the bottom of the screen.
+  const start = performance.now() + 510;
   let frame = 0, width = 0, height = 0, ratio = 1;
   function render(now) {
     cancelAnimationFrame(frame);
@@ -384,20 +439,38 @@ function bloomTree(canvas, motion) {
 
 $("#open-gift").addEventListener("click",()=>{
   const gift=$("#open-gift");if(gift.disabled)return;gift.disabled=true;
-  gift.style.visibility="hidden";const rain=$(".rose-rain");
-  const columns=Math.max(7,Math.ceil(innerWidth/84)),rows=Math.max(6,Math.ceil(innerHeight/82));
-  for(let i=0;i<columns*rows;i++){
+  tone(659);tone(880,.7,.07,.18);
+  if (reduced.matches) { show("from"); return; }
+  gift.classList.add("unwrapped");
+  const rain=$(".rose-rain");
+  const columns = Math.min(13, Math.max(5, Math.ceil(innerWidth / 110)));
+  const cell = innerWidth / columns;
+  const rows = Math.max(3, Math.min(14, Math.ceil(innerHeight / (cell * .88))));
+  rain.style.setProperty("--rose-size", Math.max(cell, innerHeight / rows) * 1.32 + "px");
+  const bouquet = document.createDocumentFragment();
+  for(let i=0;i<(columns+1)*rows;i++){
     const rose=document.createElement("img");rose.src="assets/rose.webp";rose.alt="";
-    rose.style.left=((i%columns+Math.random()*.7-.2)*100/columns)+"%";rose.style.top=((Math.floor(i/columns)+Math.random()*.7-.2)*100/rows)+"%";
-    rose.style.animationDelay=Math.random()*.4+"s";rose.style.setProperty("--spin",(Math.random()-.5)*140+"deg");
-    rose.style.filter=["none","sepia(.4) saturate(.95) hue-rotate(-10deg)","saturate(.32) brightness(1.18)"][i%3];rain.append(rose);
+    const row = Math.floor(i / (columns+1));
+    const col = i % (columns+1);
+    const y = (row + .25 + Math.random() * .48) * 100 / rows;
+    rose.style.left = ((col - (row % 2) * .5 + .05 + Math.random() * .55) * 100 / columns) + "%";
+    rose.style.top = y + "%";
+    rose.style.scale = (.76 + Math.random() * .39).toFixed(2);
+    rose.style.setProperty("--fall-from", -(y + 23) + "vh");
+    rose.style.setProperty("--fall-to", (120 - y) + "vh");
+    rose.style.setProperty("--spin", (Math.random() - .5) * 88 + "deg");
+    rose.style.animationDelay = ((1 - row / rows) * 270 + Math.random() * 180) + "ms";
+    bouquet.append(rose);
   }
-  tone(659);tone(880,.7,.07,.18);later(()=>{rain.replaceChildren();show("from");},reduced.matches?100:2960);
+  rain.append(bouquet);
+  // Change the scene under the roses, then let the same petals fall off it.
+  later(()=>show("from"), 1250);
+  window.setTimeout(()=>rain.replaceChildren(), 2880);
 });
 const angles=[-5,3,-4,-5,5,7,4,6];
 captions.forEach((title,i)=>{
   const frame=document.createElement("div");frame.className="polaroid";
-  frame.style.setProperty("--angle",angles[i]+"deg");frame.style.setProperty("--delay",i*.1+"s");
+  frame.style.setProperty("--angle",angles[i]+"deg");frame.style.setProperty("--delay",(.18+i*.105)+"s");
   const img=new Image();img.src=photoPath(i);img.alt=title;frame.append(img);$("#polaroids").append(frame);
 });
 let knocks=0;
@@ -405,19 +478,21 @@ $("#door").addEventListener("click",()=>{
   if(knocks>=3)return;knocks++;tone(157,.17,.12);
   $("#knocks").textContent="● ".repeat(knocks)+"○ ".repeat(3-knocks);
   const ring=$(".knocker");ring.classList.remove("hit");void ring.offsetWidth;ring.classList.add("hit");
-  if(knocks===3){$("#door").classList.add("open");announce("Come in, Gunjan.");later(()=>show("scratch"),1450);}
+  if(knocks===3){$("#door").classList.add("open");$(".door-frame").classList.add("welcoming");announce("Come in, Gunjan.");later(()=>show("scratch"),reduced.matches?650:1730);}
   else announce(knocks+" of 3 knocks.");
 });
 
 const foil=$("#foil"), ink=foil.getContext("2d",{willReadFrequently:true});
 let exhibitIndex=0, previousPoint=null, activeScratch=null;
 const uncovered=new Set();
+let foilPrint;
 function renderScratch() {
   previousPoint=null;activeScratch=null;
   $("#scratch-photo").src=photoPath(exhibitIndex);$("#scratch-photo").alt=captions[exhibitIndex];
   $("#exhibit").textContent=captions[exhibitIndex];$("#photo-count").textContent=(exhibitIndex+1)+" / "+captions.length;
   foil.classList.toggle("revealed",uncovered.has(exhibitIndex));foil.tabIndex=uncovered.has(exhibitIndex)?-1:0;
   ink.globalCompositeOperation="source-over";const w=foil.width;
+  if (foilPrint) { ink.drawImage(foilPrint, 0, 0); return; }
   const gold=ink.createLinearGradient(0,0,w,w);
   [[0,"#c4a16b"],[.25,"#e8d2a4"],[.55,"#d7b983"],[.85,"#c5a26b"],[1,"#dfc79d"]].forEach(([k,c])=>gold.addColorStop(k,c));
   ink.fillStyle=gold;ink.fillRect(0,0,w,w);
@@ -425,6 +500,9 @@ function renderScratch() {
   ink.textAlign="center";ink.fillStyle="#583e28";ink.font="23px Georgia";ink.fillText("✦",w/2,w*.44);
   ink.font="bold 34px Georgia";ink.fillText("Scratch to see it",w/2,w*.54);
   ink.font="italic 20px Georgia";ink.fillText("move your finger here",w/2,w*.61);
+  foilPrint = document.createElement("canvas");
+  foilPrint.width = w; foilPrint.height = foil.height;
+  foilPrint.getContext("2d").drawImage(foil, 0, 0);
 }
 function revealPhoto() {
   if(uncovered.has(exhibitIndex))return;
@@ -450,7 +528,34 @@ foil.addEventListener("pointermove",e=>{if(e.pointerId===activeScratch)scratchPo
 function finishScratch(e){if(e.pointerId!==activeScratch)return;previousPoint=null;activeScratch=null;checkCoverage();}
 foil.addEventListener("pointerup",finishScratch);foil.addEventListener("pointercancel",finishScratch);
 foil.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();revealPhoto();}});
-function changePhoto(delta){exhibitIndex=(exhibitIndex+delta+captions.length)%captions.length;renderScratch();}
+function changePhoto(delta) {
+  const picture = $(".scratch-picture");
+  picture.querySelector(".previous-print")?.remove();
+  if (!reduced.matches) {
+    // Preserve even a partly scratched print while the next exhibit slides in.
+    const print = document.createElement("canvas");
+    print.width = foil.width;
+    print.height = foil.height;
+    print.className = "previous-print";
+    print.setAttribute("aria-hidden", "true");
+    const ctx = print.getContext("2d");
+    const image = $("#scratch-photo");
+    const side = Math.min(image.naturalWidth, image.naturalHeight);
+    if (side) ctx.drawImage(image, (image.naturalWidth-side)/2, (image.naturalHeight-side)/2, side, side, 0, 0, print.width, print.height);
+    ctx.globalAlpha = Number(getComputedStyle(foil).opacity);
+    ctx.drawImage(foil, 0, 0);
+    picture.append(print);
+    const slide = print.animate([
+      {transform:"translateX(0)"},
+      {transform:"translateX(" + (-delta * 108) + "%)"}
+    ], {duration:510, easing:settle});
+    slide.onfinish = () => print.remove();
+    $("#exhibit").animate([{opacity:.15, transform:"translateY(4px)"}, {opacity:1, transform:"none"}], {duration:460, easing:settle});
+  }
+  exhibitIndex=(exhibitIndex+delta+captions.length)%captions.length;
+  renderScratch();
+  foil.getAnimations().forEach(animation => animation.finish());
+}
 $("#prev-photo").addEventListener("click",()=>changePhoto(-1));$("#next-photo").addEventListener("click",()=>changePhoto(1));
 
 let order=[],selected=null,moves=0,puzzleClock=0,started=0,solved=false,drag=null,swallowedClick=false;
@@ -462,23 +567,42 @@ function startPuzzle(){
   $("#timer").textContent="0:00";$("#moves").textContent="Moves 0";tiles.replaceChildren();
   order.forEach((_,i)=>{
     const tile=document.createElement("button");tile.className="tile";tile.dataset.slot=i;
-    tile.style.backgroundImage="url('"+puzzlePhoto+"')";tiles.append(tile);
+    const face=document.createElement("span");face.className="tile-face";face.setAttribute("aria-hidden","true");
+    face.style.backgroundImage="url('"+puzzlePhoto+"')";tile.append(face);tiles.append(tile);
   });
   paintTiles();
   puzzleClock=setInterval(()=>{$("#timer").textContent=formatTime((Date.now()-started)/1000);},500);
 }
 function paintTiles(){
   [...tiles.children].forEach((tile,slot)=>{
-    const part=order[slot];tile.style.backgroundPosition=(part%3*50)+"% "+(Math.floor(part/3)*50)+"%";
+    const part=order[slot];tile.firstElementChild.style.backgroundPosition=(part%3*50)+"% "+(Math.floor(part/3)*50)+"%";
     tile.classList.toggle("selected",selected===slot);tile.setAttribute("aria-pressed",String(selected===slot));
     tile.setAttribute("aria-label","Position "+(slot+1)+", picture piece "+(part+1));tile.disabled=solved;
   });
 }
 function swapTiles(a,b){
   if(a===b||solved)return;
+  const faces = [tiles.children[a].firstElementChild, tiles.children[b].firstElementChild];
+  const origins = faces.map(face => face.getBoundingClientRect());
+  const room = $("#puzzle .room-wrap");
+  const top = room.getBoundingClientRect().top;
   [order[a],order[b]]=[order[b],order[a]];selected=null;moves++;
   $("#moves").textContent="Moves "+moves;solved=order.every((v,i)=>v===i);paintTiles();tone(523,.16,.06);
   if(solved){clearInterval(puzzleClock);$("#solved").hidden=false;particles(0,0,true);announce("Photo restored! The next room is open.");}
+  if (reduced.matches) return;
+  if (solved) {
+    const shift = top - room.getBoundingClientRect().top;
+    room.animate([{transform:"translateY(" + shift + "px)"}, {transform:"none"}], {duration:540, easing:settle});
+  }
+  faces.forEach((face, index) => {
+    face.getAnimations().forEach(animation => animation.cancel());
+    const end = face.getBoundingClientRect();
+    const start = origins[1-index];
+    face.animate([
+      {transform:"translate(" + (start.left-end.left) + "px," + (start.top-end.top) + "px)", zIndex:2},
+      {transform:"none", zIndex:2}
+    ], {duration:390, easing:settle});
+  });
 }
 tiles.addEventListener("click",e=>{
   const tile=e.target.closest(".tile");if(!tile||solved)return;
@@ -505,7 +629,30 @@ peek.addEventListener("keyup",()=>{peekImage.hidden=true;});
 $("#envelope").addEventListener("click",()=>{
   const envelope=$("#envelope");if(envelope.classList.contains("open"))return;
   envelope.classList.add("open");tone(659,.65,.07);
-  later(()=>{$("#envelope-wrap").hidden=true;$("#letter-content").hidden=false;$("#letter-content").classList.add("enter");announce("Your letter is open.");$("#letter-heading").focus({preventScroll:true});},reduced.matches?50:900);
+  later(()=>{
+    const heading = $("#letter-heading");
+    const oldHeading = heading.getBoundingClientRect();
+    const start = $(".paper-peek").getBoundingClientRect();
+    $("#envelope-wrap").hidden = true;
+    $("#letter-content").hidden = false;
+    if (!reduced.matches) {
+      const paper = $(".letter-paper");
+      const scale = start.width / paper.offsetWidth;
+      const end = paper.getBoundingClientRect();
+      const dx = start.left + start.width/2 - end.left - end.width/2;
+      const dy = start.top - end.top;
+      const fold = Math.max(0, paper.offsetHeight - start.height / scale);
+      paper.animate([
+        {transform:"translate(" + dx + "px," + dy + "px) scale(" + scale + ")", clipPath:"inset(0 0 " + fold + "px)"},
+        {transform:"rotate(-.55deg)", clipPath:"inset(0 0 0px)"}
+      ], {duration:880, easing:settle});
+      const headingShift = oldHeading.top - heading.getBoundingClientRect().top;
+      for (const line of [heading, $("#letter .eyebrow")]) {
+        line.animate([{transform:"translateY(" + headingShift + "px)"}, {transform:"none"}], {duration:660,easing:settle});
+      }
+    }
+    announce("Your letter is open.");heading.focus({preventScroll:true});
+  },reduced.matches?0:930);
 });
 const voice=$("#voice"),play=$("#voice-play");
 function voiceState(){
