@@ -193,7 +193,7 @@ soundButton.addEventListener("click", () => {
 function tryMusicOnGesture(event) {
   if (!event.isTrusted || !sounds.active || soundButton.contains(event.target)) return;
   if (event.type === "keydown" && (event.repeat || event.ctrlKey || event.metaKey || event.altKey || event.key === "Escape")) return;
-  if (needsMusicGesture) syncMusic();
+  if (needsMusicGesture && music.paused) syncMusic();
   enableTouchSounds();
 }
 for (const event of ["touchend", "click", "keydown"]) {
@@ -253,6 +253,7 @@ function drawBow(tension=0, arrow=true) {
 drawBow();
 bowButton.addEventListener("pointerdown",e=>{
   if(fired || !e.isPrimary || e.button!==0)return;
+  tryMusicOnGesture(e);
   bowStart={x:e.clientX,y:e.clientY};bowButton.setPointerCapture(e.pointerId);drawBow(.18);
 });
 bowButton.addEventListener("pointermove",e=>{
@@ -260,7 +261,12 @@ bowButton.addEventListener("pointermove",e=>{
   pull=Math.min(1,Math.hypot(e.clientX-bowStart.x,e.clientY-bowStart.y)/65);
   drawBow(.18+pull*.82);
 });
-bowButton.addEventListener("pointerup",()=>{if(bowStart){bowStart=null;fire();}});
+bowButton.addEventListener("pointerup",e=>{
+  if(!bowStart || !e.isPrimary || e.button!==0)return;
+  // Touch browsers can grant audio permission only when the finger lifts.
+  tryMusicOnGesture(e);
+  bowStart=null;fire();
+});
 bowButton.addEventListener("pointercancel",()=>{bowStart=null;pull=0;if(!fired)drawBow();});
 bowButton.addEventListener("click",fire);$("#target").addEventListener("click",fire);$("#shoot").addEventListener("click",fire);
 function fire() {
