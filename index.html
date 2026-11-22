@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#fff4eb">
+  <meta name="description" content="A little birthday surprise for Gunjan, made with love for 12 January 2027.">
+  <title>For Gunjan, with love · 12 January 2027</title>
+  <link rel="icon" href="assets/heart.webp" type="image/webp">
+  <link rel="stylesheet" href="assets/fonts/fonts.css">
+  <link rel="stylesheet" href="style.css">
+  <script src="birthday.js" defer></script>
+</head>
+<body>
+<button id="sound" class="sound" aria-label="Turn music on" aria-pressed="false" title="Turn music on"><span class="notes" aria-hidden="true">♫</span></button>
+<main id="story">
+  <section id="opening" class="scene opening" aria-labelledby="invitation">
+    <header class="invitation"><h1 id="invitation">someone made this, just for you</h1></header>
+    <button class="heart-target" id="target" aria-label="Shoot an arrow at the heart">
+      <span class="heart-aura"></span><img src="assets/heart.webp" alt="" width="180" height="160" fetchpriority="high">
+    </button>
+    <div id="always" class="always" hidden><h2>Still you. Always you.</h2><span>— for Gunjan</span></div>
+    <button id="bow" class="bow" aria-label="Pull and release Cupid’s bow, or press Enter">
+      <canvas id="bow-art" width="360" height="360" aria-hidden="true"></canvas>
+    </button>
+    <footer class="opening-foot"><button class="pull" id="shoot">Pull &amp; let go</button><span class="dateline">Gunjan <i>♥</i> <time datetime="2027-01-12">12 January 2027</time></span></footer>
+  </section>
+
+  <section id="dedication" class="scene dedication" aria-labelledby="dedication-title" hidden>
+    <div class="ribbon-screen"><p>this one is for you…</p><h2 id="dedication-title">I Love<br>You</h2><span class="flourish"></span><p>to the best thing that ever happened to me</p></div>
+  </section>
+  <section id="tree" class="scene tree" aria-label="A tree blooming with hearts" hidden>
+    <canvas id="tree-art" aria-hidden="true"></canvas><div class="tree-note"><small>made for you, by hand</small><h2>I love you</h2><p>and every ordinary day with you.</p></div>
+  </section>
+  <section id="gift" class="scene cream centered" hidden>
+    <button id="open-gift" class="gift-open"><img src="assets/gift.webp" alt="" width="165" height="165"><strong>For you, Gunjan</strong><span>(tap to open)</span></button>
+    <div class="rose-rain" aria-hidden="true"></div>
+  </section>
+  <section id="from" class="scene cream centered" hidden>
+    <img class="corner-rose" src="assets/stem.webp" alt=""><div class="from-card"><h2>From me to you.</h2><p>This is how much I love you.</p><img src="assets/couple.webp" alt="An illustration of two people sitting close together"><span class="tiny-hearts" aria-hidden="true">♥ &nbsp; ♥ &nbsp; ♥</span></div>
+  </section>
+  <section id="album" class="scene cream centered album" aria-labelledby="album-title" hidden>
+    <div class="album-inner"><div class="polaroids" id="polaroids"></div><h2 id="album-title">See what I built just for you</h2><button class="text-button" data-next="museum">Step inside <span aria-hidden="true">✧</span></button></div>
+  </section>
+  <section id="museum" class="scene museum centered" aria-labelledby="museum-title" hidden>
+    <div class="room-wrap"><p class="eyebrow">A museum for an audience of one</p><h2 id="museum-title">I built you a <em>museum.</em></h2><p id="door-help">Knock three times. That’s the rule.</p>
+    <div class="door-frame"><div class="inside"><strong>Come in, Gunjan.</strong><span>Some ordinary things look like art with you.</span></div>
+      <button class="door" id="door" aria-describedby="door-help" aria-label="Knock on the museum door"><span class="door-sign">The Museum of Us<br>one visitor only</span><span class="knocker"><i></i></span></button></div>
+    <div class="knocks" aria-label="Knocks" id="knocks">○ ○ ○</div></div>
+  </section>
+  <section id="scratch" class="scene blush centered" aria-labelledby="scratch-heading" hidden>
+    <div class="room-wrap"><p class="eyebrow">Room I · The gallery</p><h2 id="scratch-heading">Our <em>photos.</em></h2><p>Each one is covered. Rub your finger across to see it.</p>
+    <div class="gold-frame"><div class="scratch-picture"><img id="scratch-photo" alt=""><canvas id="foil" width="512" height="512" role="button" tabindex="0" aria-label="Scratch to reveal the picture, or press Enter"></canvas></div></div>
+    <div class="plaque"><b id="exhibit"></b><small>From our little collection</small></div>
+    <div class="photo-nav"><button id="prev-photo" aria-label="Previous photo">‹</button><span id="photo-count"></span><button id="next-photo" aria-label="Next photo">›</button></div>
+    <button class="pink-button" data-next="puzzle">Keep walking</button><div class="room-progress"></div></div>
+  </section>
+  <section id="puzzle" class="scene blush centered" aria-labelledby="puzzle-heading" hidden>
+    <div class="room-wrap"><p class="eyebrow">Room II · The restoration room</p><h2 id="puzzle-heading">This photo fell <em>apart.</em></h2><p>Nine pieces. Tap two to swap them, or drag one where it belongs.</p>
+    <div class="puzzle-frame"><div id="tiles" aria-label="Photo puzzle"></div><img class="peek-image" id="peek-image" alt="Completed puzzle preview" hidden></div>
+    <div class="puzzle-info"><span id="moves">Moves 0</span><span id="timer">0:00</span><button id="peek">Hold to peek</button></div>
+    <div id="solved" hidden><p>Right back where we belong. ♥</p><button class="pink-button" data-next="letter">Next room</button></div><div class="room-progress"></div></div>
+  </section>
+  <section id="letter" class="scene blush centered" aria-labelledby="letter-heading" hidden>
+    <div class="room-wrap"><p class="eyebrow">Room III · The reading room</p><h2 id="letter-heading">A letter, sealed just for <em>you.</em></h2>
+    <div id="envelope-wrap"><button class="envelope" id="envelope" aria-label="Open the sealed letter"><span class="paper-peek">♥</span><span class="envelope-front"></span><span class="flap"></span><span class="seal">♥</span></button><p class="hand">Tap the seal to open it</p></div>
+    <div id="letter-content" hidden>
+      <article class="letter-paper"><p>Hey Gunjan ❤️</p><p>Happy birthday, meri jaan. If I could wrap up the way I feel about you, I think it would look a little like this place.</p><p>Tumhare saath ek ordinary sa din bhi meri favourite memory ban jaata hai. I’d pick a hundred more of those days with you.</p><p>On your birthday, I hope you feel as loved as you make me feel. Aaj ki har chhoti si khushi tumhare naam.</p><p>I love you more than this little letter can hold.</p><p class="signature">Always yours ♥</p></article>
+      <div class="voice-note"><button id="voice-play" aria-label="Play birthday voice note">▶</button><div><b>Hear the birthday note</b><span class="wave" aria-hidden="true"></span></div><output id="voice-time">0:00</output><audio id="voice" src="assets/birthday-note.mp3" preload="metadata"></audio></div>
+      <span class="letter-heart" aria-hidden="true">💌</span><button class="pink-button" data-next="promises">One last room</button>
+    </div><div class="room-progress"></div></div>
+  </section>
+  <section id="promises" class="scene blush centered" aria-labelledby="promise-heading" hidden>
+    <div class="room-wrap"><p class="eyebrow">Room IV · The promises</p><h2 id="promise-heading">Tick the ones you’ll <em>hold me to.</em></h2>
+    <div class="promise-paper"><h3>Our promises</h3><p>One little promise at a time</p><div id="checks"></div><div id="stamp" hidden>Sealed<br><small>with love</small></div></div>
+    <button class="pink-button" id="sign" disabled>Tick every promise (0/5)</button><div id="birthday-wish" hidden><h3>Happy birthday, Gunjan!</h3><p>12 January 2027 · Yours, always.</p><button class="text-button" id="restart">Play again</button></div><div class="room-progress"></div></div>
+  </section>
+</main>
+<div id="particles" aria-hidden="true"></div>
+<div id="announce" class="sr-only" aria-live="polite"></div>
+<noscript>This birthday surprise needs JavaScript. Turn it on to open Gunjan’s gift.</noscript>
+</body>
+</html>
