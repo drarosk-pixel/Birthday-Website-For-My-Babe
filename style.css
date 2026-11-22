@@ -32,7 +32,7 @@ button,img {user-select:none;-webkit-user-drag:none}
 .invitation {top:13%;color:#86465c}
 .invitation h1,.ribbon-screen p,.tree-note small {font-weight:800;font-style:italic;letter-spacing:.045em}
 .invitation h1 {font-size:clamp(1.08rem,2.1vw,1.65rem)}
-.heart-target {position:absolute;top:35%;left:50%;transform:translate(-50%,-50%);width:clamp(108px,12vw,178px);padding:0;border:0;background:none;touch-action:manipulation}
+.heart-target {position:absolute;top:35%;left:50%;transform:translate(-50%,-50%);width:clamp(108px,12vw,178px);padding:0;border:0;background:none;touch-action:none}
 .heart-target img {position:relative;display:block;width:100%;height:auto;filter:drop-shadow(0 9px 9px #b02c5b33);animation:heartbeat 3.4s ease-in-out infinite}
 .heart-aura {pointer-events:none;position:absolute;inset:-100%;border-radius:50%;background:radial-gradient(ellipse, #ed5487a6, #f3799e55 33%, #f2a4aa24 53%,transparent 72%);filter:blur(8px)}
 .opening-foot {bottom:max(4%,16px);display:grid;justify-items:center;gap:.26rem}
@@ -239,7 +239,21 @@ button,img {user-select:none;-webkit-user-drag:none}
 @media(max-width:600px) {
  .invitation {top:15%}.heart-target {top:35%;width:clamp(112px,29vw,145px)}.bow {left:22%;top:69%;width:105px}.opening-foot {bottom:6%}.sound {width:38px;height:38px}.tree-note {bottom:6%;left:5%}.polaroids {grid-template-columns:repeat(4,1fr);gap:5px;padding:1.2rem 1%}.polaroid img {height:clamp(90px,25vw,135px)}.album {padding-left:.5rem;padding-right:.5rem}.centered {padding-top:3.6rem}
 }
-@media(max-width:460px) and (min-height:620px) {.polaroids {max-width:340px;grid-template-columns:repeat(4,1fr);row-gap:2px}.polaroid {grid-column:span 1}.album-inner {width:100%}.album .polaroids {grid-template-columns:repeat(2,1fr);width:min(75vw,32vh)}.album .polaroid img {height:min(14.5vh,25vw)}.album h2 {margin-top:.35rem}}
+@media (prefers-reduced-motion:no-preference) {
+  .heart-target img {scale:var(--pull-scale,1);transition:scale .12s ease-out}
+}
+@media (max-width:600px) and (orientation:portrait) {
+  .album .polaroids {
+    width:min(88vw,24rem);grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:clamp(12px,4vw,18px);padding:1rem 0;
+  }
+  .album .polaroid img {height:auto;aspect-ratio:4/5}
+  .album .polaroid:is(:first-child,:last-child) {
+    grid-column:1/-1;justify-self:center;width:90%;padding:3% 3% 6%;
+  }
+  .album .polaroid:is(:first-child,:last-child) img {aspect-ratio:4/3}
+  .letter-paper {line-height:1.46}
+}
 @media(max-height:540px) and (orientation:landscape) {.centered {padding:1.1rem .8rem}.opening {min-height:305px}.invitation {top:11%}.bow {width:84px}.heart-target {width:88px}.room-wrap h2 {font-size:1.8rem}.door-frame {min-height:175px;height:45vh}.gold-frame,.puzzle-frame {width:36vh}.room-wrap>p:not(.eyebrow) {margin:.3rem auto}.opening-foot {bottom:3%}.room-wrap .pink-button {margin:.5rem auto}.album-inner {max-width:650px}.album .polaroid img {height:21vh}}
 @media(prefers-reduced-motion:reduce) {*,*:before,*:after {animation-duration:.01ms!important;animation-delay:0ms!important;transition-duration:.01ms!important;animation-iteration-count:1!important}.particle,.rose-rain {display:none}}
 @media(forced-colors:active) {button:focus-visible,[role="button"]:focus-visible {outline:2px solid Highlight;outline-offset:-2px}}

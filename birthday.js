@@ -19,6 +19,43 @@ function later(callback, delay) {
 }
 function announce(message) { $("#announce").textContent = message; }
 
+function haptic(pattern) {
+  if (!reduced.matches && !document.hidden) navigator.vibrate?.(pattern);
+}
+
+let lastTouchMove = -Infinity, lastRevealPulse = -Infinity;
+document.addEventListener("touchmove", () => { lastTouchMove = performance.now(); }, {passive:true});
+const scrollObserver = "IntersectionObserver" in window ? new IntersectionObserver((entries, observer) => {
+  let count = 0;
+  for (const entry of entries) {
+    if (!entry.isIntersecting || entry.intersectionRatio < .12) continue;
+    const item = entry.target;
+    observer.unobserve(item);
+    if (reduced.matches || !window.scrollY || item.closest(".scene")?.id !== current) continue;
+    item.animate([
+      {opacity:.18, translate:"0 14px"},
+      {opacity:1, translate:"0 0"}
+    ], {duration:520, delay:Math.min(count, 2)*45, easing:settle, fill:"backwards"});
+    count++;
+  }
+  const now = performance.now();
+  if (count && now-lastTouchMove < 1000 && now-lastRevealPulse > 200) {
+    haptic(8);
+    lastRevealPulse = now;
+  }
+}, {threshold:.12}) : null;
+
+function watchScrollReveals(container) {
+  if (!scrollObserver || reduced.matches) return;
+  const items = container.querySelectorAll(".polaroid, #album-title, .album-inner .text-button, .letter-paper p, .voice-note, #checks label, .photo-nav, .pink-button, #birthday-wish > *");
+  const fold = document.documentElement.clientHeight;
+  for (const item of items) {
+    const box = item.getBoundingClientRect();
+    // Content already in view keeps its scene entrance. Only the next items are scroll reveals.
+    if (box.height && box.top + .12*box.height > fold) scrollObserver.observe(item);
+  }
+}
+
 // The bow and the dedication expand from a point of light. The doorway dims
 // through plum, and the pages within the museum travel in the same direction.
 function transitionBetween(outgoing, incoming) {
@@ -73,6 +110,8 @@ function transitionBetween(outgoing, incoming) {
 }
 
 function show(name) {
+  scrollObserver?.disconnect();
+  lastTouchMove = -Infinity;
   sceneTimers.forEach(clearTimeout);
   sceneTimers = [];
   sceneMotion.forEach(animation => animation.cancel());
@@ -110,6 +149,7 @@ function show(name) {
   if (name === "scratch") renderScratch();
   if (name === "puzzle") startPuzzle();
   if (name === "promises") updatePromises();
+  watchScrollReveals(scene);
 }
 document.querySelectorAll("[data-next]").forEach((button) => button.addEventListener("click", () => show(button.dataset.next)));
 ["scratch","puzzle","letter","promises"].forEach((name, index) => {
@@ -224,8 +264,8 @@ function particles(x,y,confetti=false) {
   }
 }
 
-const bowCanvas=$("#bow-art"), bowButton=$("#bow");
-let pull=0, bowStart=null, fired=false;
+const bowCanvas=$("#bow-art"), bowButton=$("#bow"), heartTarget=$("#target");
+let bowStart=null, fired=false;
 function line(ctx,points,color,width) {
   ctx.beginPath();ctx.moveTo(points[0],points[1]);ctx.lineTo(points[2],points[3]);ctx.strokeStyle=color;ctx.lineWidth=width;ctx.stroke();
 }
@@ -251,24 +291,45 @@ function drawBow(tension=0, arrow=true) {
   ctx.restore();
 }
 drawBow();
-bowButton.addEventListener("pointerdown",e=>{
-  if(fired || !e.isPrimary || e.button!==0)return;
-  tryMusicOnGesture(e);
-  bowStart={x:e.clientX,y:e.clientY};bowButton.setPointerCapture(e.pointerId);drawBow(.18);
-});
-bowButton.addEventListener("pointermove",e=>{
-  if(!bowStart)return;
-  pull=Math.min(1,Math.hypot(e.clientX-bowStart.x,e.clientY-bowStart.y)/65);
-  drawBow(.18+pull*.82);
-});
-bowButton.addEventListener("pointerup",e=>{
-  if(!bowStart || !e.isPrimary || e.button!==0)return;
-  // Touch browsers can grant audio permission only when the finger lifts.
-  tryMusicOnGesture(e);
-  bowStart=null;fire();
-});
-bowButton.addEventListener("pointercancel",()=>{bowStart=null;pull=0;if(!fired)drawBow();});
-bowButton.addEventListener("click",fire);$("#target").addEventListener("click",fire);$("#shoot").addEventListener("click",fire);
+for (const handle of [bowButton, heartTarget]) {
+  handle.addEventListener("pointerdown", e => {
+    if (fired || bowStart || !e.isPrimary || e.button !== 0) return;
+    tryMusicOnGesture(e);
+    bowStart = {id:e.pointerId, x:e.clientX, y:e.clientY, band:0};
+    handle.setPointerCapture(e.pointerId);
+    drawBow(.18);
+  });
+  handle.addEventListener("pointermove", e => {
+    if (bowStart?.id !== e.pointerId) return;
+    const pull = Math.min(1, Math.hypot(e.clientX-bowStart.x, e.clientY-bowStart.y)/65);
+    drawBow(.18 + pull*.82);
+    heartTarget.style.setProperty("--pull-scale", 1 + pull*.075);
+    const band = Math.floor(pull*3);
+    if (e.pointerType === "touch" && band > bowStart.band) {
+      bowStart.band = band;
+      haptic(5 + 3*band);
+    }
+  });
+  handle.addEventListener("pointerup", e => {
+    if (bowStart?.id !== e.pointerId || e.button !== 0) return;
+    // Some touch browsers grant audio and vibration permission on release.
+    tryMusicOnGesture(e);
+    if (e.pointerType === "touch") haptic([14, 40, 20]);
+    bowStart = null;
+    heartTarget.style.removeProperty("--pull-scale");
+    fire();
+  });
+  function cancelPull(e) {
+    if (bowStart?.id !== e.pointerId) return;
+    bowStart = null;
+    heartTarget.style.removeProperty("--pull-scale");
+    if (!fired) drawBow();
+  }
+  handle.addEventListener("pointercancel", cancelPull);
+  handle.addEventListener("lostpointercapture", cancelPull);
+  handle.addEventListener("click", fire);
+}
+$("#shoot").addEventListener("click",fire);
 function fire() {
   if(fired || current!=="opening")return;
   fired=true;drawBow(0,false);
@@ -670,7 +731,7 @@ function swapTiles(a,b){
   const top = room.getBoundingClientRect().top;
   [order[a],order[b]]=[order[b],order[a]];selected=null;moves++;
   $("#moves").textContent="Moves "+moves;solved=order.every((v,i)=>v===i);paintTiles();tone(523,.16,.06);
-  if(solved){clearInterval(puzzleClock);$("#solved").hidden=false;particles(0,0,true);announce("Photo restored! The next room is open.");}
+  if(solved){clearInterval(puzzleClock);$("#solved").hidden=false;watchScrollReveals($("#solved"));particles(0,0,true);announce("Photo restored! The next room is open.");}
   if (reduced.matches) return;
   if (solved) {
     const shift = top - room.getBoundingClientRect().top;
@@ -748,6 +809,7 @@ envelopeButton.addEventListener("click", () => {
     content.hidden = false;
     paper.style.transform = "none";
     const end = paper.getBoundingClientRect();
+    watchScrollReveals(content);
     paper.style.removeProperty("transform");
     const scale = start.width / end.width;
     const fold = Math.max(0, end.height - start.height / scale);
@@ -786,6 +848,7 @@ $("#sign").addEventListener("click",()=>{
   if($("#sign").disabled)return;
   $("#checks").querySelectorAll("input").forEach(input=>input.disabled=true);
   $("#sign").hidden=true;$("#stamp").hidden=false;$("#birthday-wish").hidden=false;
+  watchScrollReveals($("#birthday-wish"));
   particles(0,0,true);tone(523);tone(659,.7,.08,.15);tone(784,.9,.08,.3);
   announce("Sealed with love. Happy birthday, Gunjan!");
   $("#restart").focus({preventScroll:true});
