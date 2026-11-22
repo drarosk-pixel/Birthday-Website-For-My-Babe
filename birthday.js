@@ -5,7 +5,7 @@ const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
 const scenes = [...document.querySelectorAll(".scene")];
 const captions = ["Love, on paper", "Coffee for two", "Between the pages", "Afternoon light", "Cherry sweet", "A quiet sunset", "Make a wish", "Close to my heart"];
 const photoPath = (index) => "assets/photos/" + String(index + 1).padStart(2, "0") + ".jpg";
-const sounds = {context:null, active:false};
+const sounds = {context:null, active:true};
 const music = $("#music"), voice = $("#voice"), soundButton = $("#sound");
 music.volume = .58;
 let current = "opening";
@@ -136,36 +136,70 @@ function tone(frequency, duration=.52, volume=.08, offset=0) {
   osc.connect(gain); gain.connect(ctx.destination);
   osc.start(start); osc.stop(start+duration+.04);
 }
-function setSoundEnabled(enabled) {
-  sounds.active = enabled;
+// Keep the visitor's choice separate from a browser waiting for a first gesture.
+let needsMusicGesture = true;
+let musicRequest = 0;
+function updateSoundButton() {
+  const enabled = sounds.active && !needsMusicGesture;
   const label = enabled ? "Turn music off" : "Turn music on";
   soundButton.setAttribute("aria-pressed", String(enabled));
   soundButton.setAttribute("aria-label", label);
   soundButton.title = label;
 }
 function syncMusic() {
+  const request = ++musicRequest;
   if (!sounds.active || document.hidden || !voice.paused) {
     music.pause();
+    soundButton.classList.remove("is-playing");
     return;
   }
   music.play().catch(error => {
-    if (error.name === "AbortError" || !sounds.active) return;
-    setSoundEnabled(false);
-    announce("Music could not start. Tap the music button to try again.");
+    if (request !== musicRequest || error.name === "AbortError") return;
+    soundButton.classList.remove("is-playing");
+    needsMusicGesture = error.name === "NotAllowedError";
+    if (!needsMusicGesture) {
+      sounds.active = false;
+      announce("Music could not start. Tap the music button to try again.");
+    }
+    updateSoundButton();
   });
 }
-soundButton.addEventListener("click", () => {
-  setSoundEnabled(!sounds.active);
-  syncMusic();
-  // The song plays directly from the audio element. Web Audio supplies the touch sounds.
-  const AudioEngine = window.AudioContext || window.webkitAudioContext;
-  if (sounds.active && AudioEngine) {
-    sounds.context ||= new AudioEngine();
-    sounds.context.resume().catch(() => {});
-  }
+music.addEventListener("playing", () => {
+  if (music.paused || !sounds.active || document.hidden || !voice.paused) return;
+  needsMusicGesture = false;
+  updateSoundButton();
+  soundButton.classList.add("is-playing");
 });
+for (const event of ["pause", "waiting", "ended", "emptied", "error"]) {
+  music.addEventListener(event, () => soundButton.classList.remove("is-playing"));
+}
+
+function enableTouchSounds() {
+  const AudioEngine = window.AudioContext || window.webkitAudioContext;
+  if (!AudioEngine) return;
+  sounds.context ||= new AudioEngine();
+  if (sounds.context.state !== "running") sounds.context.resume().catch(() => {});
+}
+soundButton.addEventListener("click", () => {
+  sounds.active = !sounds.active || needsMusicGesture;
+  needsMusicGesture = false;
+  updateSoundButton();
+  syncMusic();
+  if (sounds.active) enableTouchSounds();
+});
+function tryMusicOnGesture(event) {
+  if (!event.isTrusted || !sounds.active || soundButton.contains(event.target)) return;
+  if (event.type === "keydown" && (event.repeat || event.ctrlKey || event.metaKey || event.altKey || event.key === "Escape")) return;
+  if (needsMusicGesture) syncMusic();
+  enableTouchSounds();
+}
+for (const event of ["touchend", "click", "keydown"]) {
+  document.addEventListener(event, tryMusicOnGesture, {capture:true, passive:true});
+}
 for (const event of ["play", "pause", "ended"]) voice.addEventListener(event, syncMusic);
 document.addEventListener("visibilitychange", syncMusic);
+syncMusic();
+
 function particles(x,y,confetti=false) {
   if (reduced.matches) return;
   const colors=["#bf345e","#ec86a4","#eeb85b","#f49e94","#79435b"];

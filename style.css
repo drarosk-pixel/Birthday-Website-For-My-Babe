@@ -15,6 +15,17 @@ button,img {user-select:none;-webkit-user-drag:none}
 .sr-only {position:absolute;top:0;left:0;width:1px;height:1px;padding:0;border:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .sound {position:fixed;z-index:10;top:max(15px,env(safe-area-inset-top));right:max(17px,env(safe-area-inset-right));width:41px;height:41px;border:1px solid #fff9;border-radius:50%;background:#fffffff0;color:#704650;box-shadow:0 1px 12px #6c2f3510;display:grid;place-items:center}
 .notes {font:700 21px Georgia;position:relative;line-height:1}.sound[aria-pressed=false] .notes:after {content:"";position:absolute;top:49%;left:-14%;width:130%;height:1.7px;background:currentColor;transform:rotate(48deg);box-shadow:0 -1.5px white}
+.sound .music-bars {display:none;align-items:end;justify-content:center;gap:2px;height:17px;width:21px}
+.sound.is-playing .notes {display:none}
+.sound.is-playing .music-bars {display:flex}
+.music-bars i {width:3px;height:100%;border-radius:2px;background:linear-gradient(#bc627d,#783550);transform-origin:center bottom;transform:scaleY(.62)}
+.music-bars i:nth-child(2) {transform:scaleY(1);--tempo:.68s;--phase:-.34s}
+.music-bars i:nth-child(3) {transform:scaleY(.45);--tempo:.84s;--phase:-.13s}
+.music-bars i:nth-child(4) {transform:scaleY(.78);--tempo:.73s;--phase:-.51s}
+@media (prefers-reduced-motion:no-preference) {
+  .sound.is-playing .music-bars i {animation:music-level var(--tempo,.91s) var(--phase,-.2s) ease-in-out infinite alternate}
+  @keyframes music-level {0% {transform:scaleY(.26)} 46% {transform:scaleY(.91)} 75% {transform:scaleY(.51)} 100% {transform:scaleY(1)}}
+}
 .opening {height:100vh;height:100svh;min-height:410px;overflow:hidden;background:radial-gradient(ellipse at 50% 36%,#ffd9db45 0%,transparent 37%),radial-gradient(ellipse at 9% 5%,#fff8ee 0%,transparent 56%),linear-gradient(180deg,#fff8f2 0%,#fff5eb 50%,#f9e1d5 100%)}
 .invitation,.opening-foot,.always {position:absolute;left:50%;transform:translateX(-50%);text-align:center;width:min(94%,50rem)}
 .invitation {top:13%;color:#86465c}
