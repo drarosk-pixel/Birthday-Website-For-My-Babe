@@ -8,7 +8,7 @@ const photoPath = (index) => "assets/photos/" + String(index + 1).padStart(2, "0
 const sounds = {context:null, active:false, timer:0, beat:0};
 let current = "opening";
 let sceneTimers = [];
-let treeFrame = 0;
+let stopTree = null;
 
 function later(callback, delay) {
   sceneTimers.push(window.setTimeout(callback, delay));
@@ -17,21 +17,39 @@ function announce(message) { $("#announce").textContent = message; }
 function show(name) {
   sceneTimers.forEach(clearTimeout);
   sceneTimers = [];
-  cancelAnimationFrame(treeFrame);
+  if (stopTree) { stopTree(); stopTree = null; }
   clearInterval(puzzleClock);
   if (current === "letter") $("#voice").pause();
+  const previous = document.getElementById(current);
+  const outgoing = reduced.matches ? null : previous;
+  const previousScroll = window.scrollY;
   current = name;
-  scenes.forEach((scene) => {
-    scene.hidden = scene.id !== name;
-    scene.classList.toggle("enter", !scene.hidden);
-  });
+  for (const scene of scenes) {
+    const active = scene.id === name;
+    if (scene !== outgoing) scene.style.removeProperty("top");
+    scene.hidden = !active && scene !== outgoing;
+    scene.inert = !active;
+    scene.classList.toggle("enter", active);
+    scene.classList.toggle("departing", scene === outgoing);
+  }
+  if (outgoing) {
+    outgoing.style.top = -previousScroll + "px";
+    later(() => {
+      outgoing.hidden = true;
+      outgoing.classList.remove("departing");
+      outgoing.style.removeProperty("top");
+    }, 650);
+  }
   window.scrollTo(0, 0);
   const scene = document.getElementById(name);
   const heading = scene.querySelector("h1,h2,button") || scene;
   if (!heading.matches("button")) heading.tabIndex = -1;
   heading.focus({preventScroll:true});
   if (name === "dedication") later(() => show("tree"), reduced.matches ? 1800 : 2900);
-  if (name === "tree") { bloomTree(); later(() => show("gift"), reduced.matches ? 2000 : 4000); }
+  if (name === "tree") {
+    stopTree = bloomTree($("#tree-art"), reduced);
+    later(() => show("gift"), reduced.matches ? 2000 : 4900);
+  }
   if (name === "from") later(() => show("album"), 3200);
   if (name === "scratch") renderScratch();
   if (name === "puzzle") startPuzzle();
@@ -160,46 +178,210 @@ function fire() {
   later(()=>show("dedication"),2650);
 }
 
-function bloomTree() {
-  const canvas=$("#tree-art"),ctx=canvas.getContext("2d");
-  let points=[],branches=[];
-  let seed=27;
-  function random(){seed=seed*16807%2147483647;return (seed-1)/2147483646;}
-  function branch(x,y,len,ang,depth) {
-    const nx=x+Math.sin(ang)*len,ny=y-Math.cos(ang)*len;
-    branches.push({x,y,nx,ny,depth});
-    if(depth<5) {
-      branch(nx,ny,len*(.64+random()*.13),ang-.31-random()*.41,depth+1);
-      branch(nx,ny,len*(.65+random()*.13),ang+.31+random()*.39,depth+1);
-    }
-  }
-  branch(0,.94,.34,.025,0);
-  const colors=["#ee8fa1","#dd4878","#efa87a","#f3c665","#d65b89","#ee7791","#fba0ac"];
-  while(points.length<440) {
-    const x=random()*2.3-1.15,y=random()*2.35-1.05;
-    if((x*x+y*y-1)**3-x*x*y**3>0)continue;
-    points.push({x:x*.33,y:.32-y*.28,s:.009+random()*.012,shade:colors[Math.floor(random()*colors.length)],rank:Math.hypot(x,y+.8)*.42+random()*.18});
-  }
-  const start=performance.now();
-  function render(now) {
-    const width=canvas.clientWidth,height=canvas.clientHeight,dpr=Math.min(devicePixelRatio||1,2);
-    if(canvas.width!==Math.round(width*dpr)||canvas.height!==Math.round(height*dpr)){canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);}
-    const t=reduced.matches?4:(now-start)/1000,scale=Math.min(width*1.12,height);
-    ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,width,height);ctx.save();ctx.translate(width*(width>600?.57:.53),height-scale*.91);ctx.scale(scale,scale);
-    for(const b of branches){
-      const k=Math.max(0,Math.min(1,(t-b.depth*.13)/.42));
-      if(!k)continue;
-      ctx.beginPath();ctx.moveTo(b.x,b.y);ctx.lineTo(b.x+(b.nx-b.x)*k,b.y+(b.ny-b.y)*k);ctx.lineCap="round";ctx.strokeStyle="#70434b";ctx.lineWidth=.025*Math.pow(.71,b.depth);ctx.stroke();
-    }
-    for(const p of points){
-      const k=Math.max(0,Math.min(1,(t-.8-p.rank*1.5)*3));if(!k)continue;
-      ctx.save();ctx.translate(p.x,p.y);ctx.scale(p.s*k,p.s*k);ctx.beginPath();ctx.moveTo(0,1);ctx.bezierCurveTo(-1.6,-.2,-.65,-1.5,0,-.68);ctx.bezierCurveTo(.8,-1.6,1.6,-.15,0,1);ctx.fillStyle=p.shade;ctx.fill();ctx.restore();
-    }
-    ctx.restore();
-    if(t<3.8 && current==="tree")treeFrame=requestAnimationFrame(render);
-  }
-  render(performance.now());
+// One shaded sprite per colour keeps leaf painting cheap during the bloom.
+function heartLeafSprite([light, middle, dark]) {
+  const sprite = document.createElement("canvas");
+  sprite.width = sprite.height = 64;
+  const brush = sprite.getContext("2d");
+  brush.beginPath();
+  brush.moveTo(32, 58);
+  brush.bezierCurveTo(24, 51, 2, 36, 3, 20);
+  brush.bezierCurveTo(4, 3, 22, 1, 32, 15);
+  brush.bezierCurveTo(44, -1, 62, 6, 61, 22);
+  brush.bezierCurveTo(61, 37, 41, 53, 32, 58);
+  brush.closePath();
+  brush.clip();
+
+  const colour = brush.createRadialGradient(20, 14, 1, 36, 31, 40);
+  colour.addColorStop(0, light);
+  colour.addColorStop(.52, middle);
+  colour.addColorStop(1, dark);
+  brush.fillStyle = colour;
+  brush.fillRect(0, 0, 64, 64);
+  const gleam = brush.createRadialGradient(18, 14, 1, 18, 14, 9);
+  gleam.addColorStop(0, "rgba(255,255,255,.91)");
+  gleam.addColorStop(1, "rgba(255,255,255,0)");
+  brush.fillStyle = gleam;
+  brush.fillRect(6, 3, 26, 25);
+  return sprite;
 }
+
+function bloomTree(canvas, motion) {
+  const ctx = canvas.getContext("2d");
+  const sprites = [
+    ["#ffd7e8", "#f77eaa", "#bb3471"], ["#ffcee2", "#ef639a", "#a72565"],
+    ["#ffeaf2", "#f3a5c1", "#d1709c"], ["#ffc7d3", "#f58188", "#ca536e"],
+    ["#fff1bf", "#ffc672", "#e49047"], ["#fff4ed", "#f1c6cb", "#d795ac"]
+  ].map(heartLeafSprite);
+  let seed = 27;
+  function random() {
+    seed = seed * 16807 % 2147483647;
+    return (seed - 1) / 2147483646;
+  }
+  const clamp = value => Math.max(0, Math.min(1, value));
+  const ease = value => value * value * (3 - 2 * value);
+
+  // The same crown coordinates guide the curved limbs and the staggered rows of leaves.
+  const crown = new Path2D();
+  crown.moveTo(180, 49);
+  crown.bezierCurveTo(127, -22, 31, -6, 17, 70);
+  crown.bezierCurveTo(2, 139, 88, 193, 180, 254);
+  crown.bezierCurveTo(267, 194, 355, 141, 344, 75);
+  crown.bezierCurveTo(331, -5, 237, -23, 180, 49);
+  crown.closePath();
+
+  const fork = {x:180, y:246, radius:6.5, arrival:.82};
+  const limbs = [];
+  function branch(parent, x, y, radius, bend) {
+    x += (random() - .5) * 7;
+    y += (random() - .5) * 8;
+    const dx = x - parent.x, dy = y - parent.y;
+    const length = Math.hypot(dx, dy);
+    const controlX = (parent.x + x) / 2 - dy / length * bend;
+    const controlY = (parent.y + y) / 2 + dx / length * bend;
+    const tip = {x, y, radius, arrival:parent.arrival + length / 285};
+    limbs.push({base:parent, tip, controlX, controlY});
+    return tip;
+  }
+  for (const side of [-1, 1]) {
+    const x = offset => 180 + side * offset;
+    const arm = branch(fork, x(62), 166, 4.5, -7 * side);
+    const outer = branch(arm, x(111), 107, 2.9, 5 * side);
+    const high = branch(outer, x(116), 62, 1.5, -4 * side);
+    branch(high, x(99), 28, .6, -3 * side);
+    branch(high, x(140), 48, .6, 2 * side);
+    branch(outer, x(153), 86, .7, 4 * side);
+    const low = branch(arm, x(103), 147, 2, 5 * side);
+    branch(low, x(134), 122, .7, 3 * side);
+    const inner = branch(arm, x(51), 99, 2.7, 6 * side);
+    const upper = branch(inner, x(69), 53, 1.6, -4 * side);
+    branch(upper, x(77), 20, .6, 2 * side);
+    branch(upper, x(44), 33, .6, 2 * side);
+    branch(inner, x(33), 60, .8, 4 * side);
+  }
+  const middle = branch(fork, 178, 157, 4, 9);
+  const centre = branch(middle, 184, 102, 2.2, -4);
+  branch(centre, 166, 65, .7, 1);
+  branch(centre, 202, 57, .7, -3);
+
+  function pointOnLimb(limb, t) {
+    const u = 1 - t;
+    return {
+      x:u*u*limb.base.x + 2*u*t*limb.controlX + t*t*limb.tip.x,
+      y:u*u*limb.base.y + 2*u*t*limb.controlY + t*t*limb.tip.y
+    };
+  }
+  // Buds start on nearby wood. The slight jitter breaks up rows without leaving bald patches.
+  const anchors = limbs.flatMap(limb => [.25, .5, .75, 1].map(t => pointOnLimb(limb, t)));
+  const backLeaves = [], frontLeaves = [];
+  const palette = [0, 0, 1, 1, 2, 3, 4, 4, 5];
+  for (let row = 0; row < 21; row++) {
+    for (let col = 0; col < 23; col++) {
+      const x = col * 15.5 + (row % 2) * 7.75 + (random() - .5) * 8;
+      const y = 5 + row * 12.7 + (random() - .5) * 6;
+      if (!ctx.isPointInPath(crown, x, y)) continue;
+      let anchor = fork, nearest = Infinity;
+      for (const point of anchors) {
+        const distance = (point.x - x)**2 + (point.y - y)**2;
+        if (distance < nearest) { nearest = distance; anchor = point; }
+      }
+      const layer = random() < .35 ? backLeaves : frontLeaves;
+      layer.push({x, y, anchor, size:15 + random()*10, angle:(random()-.5)*1.05,
+        sprite:sprites[palette[Math.floor(random()*palette.length)]],
+        delay:1.12 + Math.hypot(x-fork.x, y-fork.y)*.0058 + random()*.19});
+    }
+  }
+
+  // Paint a curved, tapered segment up to its growing tip.
+  function wood(x, y, cx, cy, endX, endY, startRadius, endRadius, t) {
+    if (t <= 0) return;
+    const ax = x + (cx-x)*t, ay = y + (cy-y)*t;
+    const bx = cx + (endX-cx)*t, by = cy + (endY-cy)*t;
+    const tipX = ax + (bx-ax)*t, tipY = ay + (by-ay)*t;
+    const distance = Math.hypot(tipX-x, tipY-y) || 1;
+    const nx = (y-tipY)/distance, ny = (tipX-x)/distance;
+    const radius = startRadius + (endRadius-startRadius)*t;
+    const midRadius = (startRadius+radius)/2;
+    ctx.beginPath();
+    ctx.moveTo(x+nx*startRadius, y+ny*startRadius);
+    ctx.quadraticCurveTo(ax+nx*midRadius, ay+ny*midRadius, tipX+nx*radius, tipY+ny*radius);
+    ctx.lineTo(tipX-nx*radius, tipY-ny*radius);
+    ctx.quadraticCurveTo(ax-nx*midRadius, ay-ny*midRadius, x-nx*startRadius, y-ny*startRadius);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(tipX, tipY, radius, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  function paintLeaves(leaves, t) {
+    for (const leaf of leaves) {
+      const growth = ease(clamp((t-leaf.delay)/.58));
+      if (!growth) continue;
+      const x = leaf.anchor.x + (leaf.x-leaf.anchor.x)*growth;
+      const y = leaf.anchor.y + (leaf.y-leaf.anchor.y)*growth;
+      const size = leaf.size*growth;
+      ctx.save();
+      ctx.translate(x,y);
+      ctx.rotate(leaf.angle - .16*(1-growth));
+      ctx.drawImage(leaf.sprite, -size/2, -size/2, size, size);
+      ctx.restore();
+    }
+  }
+
+  const start = performance.now();
+  let frame = 0, width = 0, height = 0, ratio = 1;
+  function render(now) {
+    cancelAnimationFrame(frame);
+    const t = motion.matches ? 5 : Math.max(0, (now-start)/1000);
+    const portrait = width < height;
+    const scale = Math.min(width*(portrait ? .96 : .71), height*.93)/360;
+    if (!scale) return;
+    const top = portrait ? (height-scale*260)*.33 : height*.048;
+    const centreX = width*(portrait ? .5 : .57);
+    const rootY = (height-top)/scale + 7;
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    ctx.clearRect(0, 0, width, height);
+
+    for (let i=0; i<8; i++) {
+      const size = scale*(12+i%3*3);
+      const x = width*((.07+i*.379)%1) + Math.sin(t*.4+i)*scale*5;
+      const y = height*((.16+i*.237)%1) - Math.sin(t*.5+i*2)*scale*6;
+      ctx.globalAlpha = .09 + (i%3)*.035;
+      ctx.drawImage(sprites[i%sprites.length], x, y, size, size);
+    }
+    ctx.globalAlpha = 1;
+    ctx.translate(centreX-180*scale, top);
+    ctx.scale(scale, scale);
+    paintLeaves(backLeaves, t);
+    ctx.fillStyle = "#583646";
+    wood(177, rootY, 194, (rootY+fork.y)/2, fork.x, fork.y, 9, fork.radius, ease(clamp(t/.85)));
+    for (const limb of limbs) {
+      const {base, tip, controlX, controlY} = limb;
+      const growth = clamp((t-base.arrival)/(tip.arrival-base.arrival));
+      wood(base.x, base.y, controlX, controlY, tip.x, tip.y, base.radius*.85, tip.radius, growth);
+    }
+    paintLeaves(frontLeaves, t);
+    if (!motion.matches && t<5) frame=requestAnimationFrame(render);
+  }
+
+  function resize() {
+    width=canvas.clientWidth; height=canvas.clientHeight;
+    ratio=Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width=Math.round(width*ratio); canvas.height=Math.round(height*ratio);
+    render(performance.now());
+  }
+  const observer = new ResizeObserver(resize);
+  observer.observe(canvas);
+  motion.addEventListener("change", resize);
+  resize();
+  return () => {
+    observer.disconnect();
+    motion.removeEventListener("change", resize);
+    cancelAnimationFrame(frame);
+  };
+}
+
 $("#open-gift").addEventListener("click",()=>{
   const gift=$("#open-gift");if(gift.disabled)return;gift.disabled=true;
   gift.style.visibility="hidden";const rain=$(".rose-rain");

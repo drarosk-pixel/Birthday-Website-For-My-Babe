@@ -9,7 +9,8 @@ h1,h2,h3,p {margin:0}
 button,img {user-select:none;-webkit-user-drag:none}
 [hidden] {display:none!important}
 .scene {position:relative;isolation:isolate;min-height:100vh;min-height:100svh;overflow:hidden}
-.scene.enter {animation:appear .5s ease-out}
+.scene.enter {z-index:1;animation:appear .62s cubic-bezier(.4,0,.2,1) both}
+.scene.departing {position:fixed;left:0;right:0;z-index:0;pointer-events:none}
 .centered {display:grid;place-items:center;text-align:center;padding:3rem 1rem}
 .sr-only {position:absolute;top:0;left:0;width:1px;height:1px;padding:0;border:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .sound {position:fixed;z-index:10;top:max(15px,env(safe-area-inset-top));right:max(17px,env(safe-area-inset-right));width:41px;height:41px;border:1px solid #fff9;border-radius:50%;background:#fffffff0;color:#704650;box-shadow:0 1px 12px #6c2f3510;display:grid;place-items:center}
@@ -42,8 +43,16 @@ button,img {user-select:none;-webkit-user-drag:none}
 .ribbon-screen h2 {font:400 clamp(4.2rem,13vmin,9.8rem)/.94 var(--script);margin:.6rem 0 .3rem;animation:rise .9s both}
 .ribbon-screen p {font-size:clamp(.9rem,1.5vw,1.35rem)}
 .flourish {width:clamp(6rem,17vw,14rem);height:12px;border:2px solid #f1bb75;border-left-color:transparent;border-right-color:transparent;border-radius:50%;transform:rotate(-2deg);margin:.8rem 0 1.2rem}
-.tree {height:100svh;background:radial-gradient(ellipse at 57% 81%,#ffffe9 2%,transparent 53%),radial-gradient(ellipse at 12% 77%,#facfc3,transparent 55%),linear-gradient(#fff7ea,#fce5db)}
+.tree {height:100vh;height:100dvh;background:radial-gradient(ellipse at 57% 65%,#ffffed 2%,transparent 53%),radial-gradient(ellipse at 12% 77%,#facfc3,transparent 55%),linear-gradient(#fff7ea,#fce5db)}
 .tree canvas {width:100%;height:100%;position:absolute;inset:0}.tree-note {position:absolute;bottom:9%;left:4%;background:#fff4eaa6;padding:1rem 1.5rem;box-shadow:0 4px 25px #e7a1a233}.tree-note h2 {font-size:clamp(1.8rem,3.3vw,3.3rem);color:#a02d56}.tree-note p {font:700 1.12rem var(--hand)}
+.tree.enter .tree-note {animation:rise .7s .65s both}
+.tree.enter .tree-note h2 {animation:rise .7s .95s both}
+.tree.enter .tree-note p {animation:appear .8s 1.6s both}
+@media (orientation:portrait) {
+ .tree {display:grid;grid-template-rows:minmax(0,1fr) auto;justify-items:center}
+ .tree canvas {position:static;min-height:0;mask-image:linear-gradient(#000 0 80%,transparent 100%);-webkit-mask-image:linear-gradient(#000 0 80%,transparent 100%)}
+ .tree .tree-note {position:static;max-width:90%;margin:.4rem auto clamp(1.4rem,6svh,4rem);text-align:center}
+}
 .cream {background:radial-gradient(ellipse at 50% 48%,#fbf2d9,#f9ecca 70%,#f5e7c5);color:#652f29}
 .gift-open {border:0;background:none;display:grid;justify-items:center;gap:.5rem}.gift-open img {width:clamp(104px,15vmin,175px);height:auto;filter:drop-shadow(0 8px 8px #723b3326);animation:float 3s ease-in-out infinite}.gift-open strong {font:400 clamp(2rem,4.8vmin,3.8rem) var(--script);margin-top:.5rem}.gift-open span {font:italic 1rem Georgia;color:#815e49}
 .rose-rain,#particles {position:absolute;pointer-events:none;inset:0;overflow:hidden}.rose-rain img {position:absolute;width:clamp(3.5rem,8vw,8rem);animation:rosedrop 2.6s ease-in-out both}
